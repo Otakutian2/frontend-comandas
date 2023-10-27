@@ -50,7 +50,6 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
         <title>Sistema de Comandas</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/logo.ico" sizes="any" />
-        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
       </Head>
 
       <LocalizationProvider dateAdapter={AdapterDayjs}>
