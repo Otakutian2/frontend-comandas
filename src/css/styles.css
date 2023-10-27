@@ -1,0 +1,46 @@
+html,
+body {
+  min-height: 100vh;
+}
+
+div:where(.swal2-container) {
+  z-index: 1500 !important;
+}
+
+.custom-icon {
+  border: none !important;
+}
+
+.custom-actions {
+  padding: 0 1.5rem !important;
+  width: -webkit-fill-available !important;
+}
+
+.custom-confirm {
+  flex-grow: 1;
+}
+
+.custom-confirm-create {
+  background-color: #0d6efd !important;
+}
+
+.custom-confirm-update {
+  background-color: #ed6c02 !important;
+}
+
+.custom-confirm-delete {
+  background-color: #0d6efd !important;
+}
+
+.custom-cancel {
+  background-color: #d32f2f !important;
+  flex-grow: 1;
+}
+
+.chart {
+  max-width: 100%;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 400px !important;
+  margin: 0.5rem 0;
+}
