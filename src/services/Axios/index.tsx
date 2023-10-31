@@ -1,5 +1,4 @@
 import { APP_ROUTES } from "@/routes";
-import { useAuthStore } from "@/store/auth";
 import axios, { AxiosError } from "axios";
 import https from "https";
 import Router from "next/router";
@@ -39,9 +38,9 @@ axiosObject.interceptors.response.use(
     if (error.request.status === 401) {
       localStorage.removeItem("access_token");
 
-      /* if (Router.pathname !== APP_ROUTES.login) {
+      if (Router.pathname !== APP_ROUTES.login) {
         window.location.href = APP_ROUTES.login;
-      } */
+      }
     }
 
     return Promise.reject(error);

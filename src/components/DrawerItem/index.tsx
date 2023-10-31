@@ -90,6 +90,8 @@ const reportsItems: IMenuItemsWithSubItemsProps[] = [
   },
 ];
 
+const MAX_LENGTH = 17;
+
 const DrawerItem = () => {
   const user = useUserStore((state) => state.user);
   const { data } = useSWR("api/establishment/first", () =>
@@ -111,8 +113,13 @@ const DrawerItem = () => {
         },
       }}
     >
-      <Title variant="h2" sx={{ my: 2, textAlign: "center" }}>
-        {data?.name}
+      <Title
+        variant="h2"
+        sx={{ my: 2, textAlign: "center", overflow: "hidden" }}
+      >
+        {data?.name && data?.name.length <= MAX_LENGTH
+          ? data?.name
+          : `${data?.name.slice(0, MAX_LENGTH)}...`}
       </Title>
 
       <List>

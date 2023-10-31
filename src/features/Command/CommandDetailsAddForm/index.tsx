@@ -23,6 +23,7 @@ import { ICommandDetailsGet } from "@/interfaces/ICommand";
 import { onlyNumber, roundDecimal } from "@/utils";
 import { showSuccessToastMessage } from "@/lib/Messages";
 import LoaderComponent from "@/components/LoaderComponent";
+import Alert from "@mui/material/Alert";
 
 interface CommandDetailsAddFormProps {
   open: boolean;
@@ -131,6 +132,12 @@ const CommandDetailsAddForm: React.FC<CommandDetailsAddFormProps> = ({
         </Box>
       </DialogTitle>
       <DialogContent>
+        <Alert severity="info" sx={{ textAlign: "justify", mb: 2 }}>
+          Ten en cuenta que al agregar el mismo plato a la comanda, este será
+          reemplazado. Si deseas aumentar, disminuir o editar la observación,
+          puedes utilizar la función de editar.
+        </Alert>
+
         <form onSubmit={handleSubmit} id="form-add-dish-details">
           <Grid container spacing={2}>
             <Grid item xs={12}>

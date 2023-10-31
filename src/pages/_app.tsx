@@ -21,6 +21,7 @@ import { NextPage } from "next";
 import { ReactElement, ReactNode } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AuthWrapper from "@/components/AuthWrapper";
+import WatsonAssistantChatWrapper from "@/components/WatsonAssistantChat";
 
 ChartJS.register(
   ArcElement,
@@ -58,6 +59,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
           <AuthWrapper>
             <ProtectedRoute>
               {getLayout(<Component {...pageProps} />)}
+              <WatsonAssistantChatWrapper />
             </ProtectedRoute>
           </AuthWrapper>
         </ThemeProvider>

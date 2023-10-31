@@ -56,12 +56,14 @@ const CommandDetailsSection = () => {
   const user = useUserStore((state) => state.user);
   const role = user?.role.name as UserRoles;
   const canManageCommand = role === "Administrador" || role === "Mesero";
+  const canViewCommand =
+    canManageCommand || role == "Cajero" || role == "Cocinero";
 
   if (router.query.id === undefined) return null;
 
   const id = (router.query.id as string).toLowerCase();
 
-  if (!canManageCommand && id === "new") {
+  if ((!canManageCommand && id === "new") || !canViewCommand) {
     router.push(APP_ROUTES.error403);
     return null;
   }
@@ -240,6 +242,11 @@ const CommandDetailsSectionContent = ({
 
       if (res.commandState.name === "Pagado") {
         showCommmandNotFoundAndRedirect();
+        return;
+      }
+
+      if (res.commandState.name === "Generado" && role === "Cajero") {
+        router.push(APP_ROUTES.error403);
         return;
       }
 

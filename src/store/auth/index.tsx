@@ -15,7 +15,10 @@ export const useAuthStore = create<IAuthStore>()(
         setAccessToken: (accessToken: string) =>
           set((state) => ({ accessToken })),
 
-        clearTokens: () => set({ accessToken: undefined }),
+        clearTokens: () => {
+          window.location.reload();
+          set({ accessToken: undefined });
+        },
       }),
       {
         name: "auth-storage",
