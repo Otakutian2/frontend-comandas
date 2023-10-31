@@ -36,6 +36,9 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
     table?.seatCount || command?.tableRestaurant?.seatCount || 1;
   const role = user?.role.name as UserRoles;
   const canManageCommand = role === "Administrador" || role === "Mesero";
+  const employeeName = command?.employee
+    ? command.employee.firstName + " " + command.employee.lastName
+    : user.firstName + " " + user.lastName;
 
   return (
     <Formik<ICommandPrincipal>
@@ -122,7 +125,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Empleado"
-                defaultValue={user.firstName + " " + user.lastName}
+                defaultValue={employeeName}
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
