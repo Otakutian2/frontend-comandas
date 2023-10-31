@@ -26,7 +26,7 @@ const ListItemButtonLink = ({ text, href, Icon }: IMenuItemsProps) => {
           <Icon sx={{ color: "inherit", fontSize: "2rem" }} />
         </ListItemIcon>
 
-        <ListItemText primary={text} />
+        <ListItemText sx={{ whiteSpace: "pre-line" }} primary={text} />
       </ListItemButton>
     </ListItem>
   );
