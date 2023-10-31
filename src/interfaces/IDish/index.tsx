@@ -18,7 +18,7 @@ interface IDishGet extends IDishPrincipal {
 interface IDishOrderStatistics {
   dishId: string;
   name: string;
-  image: string;
+  imgDish: string;
   category: string;
   totalSales: number;
   quantityOfDishesSold: number;

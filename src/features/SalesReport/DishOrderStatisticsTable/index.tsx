@@ -29,10 +29,10 @@ const DishOrderStatisticsTable = ({ data }: IDishOrderStatisticsTableProps) => {
       filterable: false,
       flex: 2,
       renderCell: (params: GridCellParams<IDishOrderStatistics>) => (
-        <ImageView image={params.row.image} />
+        <ImageView image={params.row.imgDish} />
       ),
       valueGetter: (params: GridValueGetterParams<IDishOrderStatistics>) =>
-        params.row.image,
+        params.row.imgDish,
     },
     {
       field: "name",
