@@ -136,15 +136,29 @@ const EmployeeTable = ({ data, roles }: IEmpoyeeTableProps) => {
               label="Delete"
               color="error"
               onClick={async () => {
-                const count = await getObject<number>(
+                const countNumberCommands = await getObject<number>(
                   `api/Employee/${employee.id}/number-commands`
                 );
+                const countNumberReceipts = await getObject<number>(
+                  `api/Employee/${employee.id}/number-receipts`
+                );
 
-                if (count > 0) {
+                if (countNumberCommands > 0) {
                   showErrorMessage({
                     title: `NO SE PUEDE ELIMINAR EL EMPLEADO - ${employee.id}`,
-                    contentHtml: `No es posible eliminar el empleado debido a que se encontró ${count} comanda${
-                      count !== 1 ? "s" : ""
+                    contentHtml: `No es posible eliminar el empleado debido a que se encontró ${countNumberCommands} comanda${
+                      countNumberCommands !== 1 ? "s" : ""
+                    } asignado a dicho empleado.`,
+                  });
+
+                  return;
+                }
+
+                if (countNumberReceipts > 0) {
+                  showErrorMessage({
+                    title: `NO SE PUEDE ELIMINAR EL EMPLEADO - ${employee.id}`,
+                    contentHtml: `No es posible eliminar el empleado debido a que se encontró ${countNumberReceipts} comprobante${
+                      countNumberReceipts !== 1 ? "s" : ""
                     } asignado a dicho empleado.`,
                   });
 

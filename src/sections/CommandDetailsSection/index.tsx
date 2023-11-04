@@ -164,7 +164,10 @@ const CommandDetailsSectionContent = ({
 
   // Detectando cambios en la comanda
   useEffect(() => {
-    if (commandDetailsCollection.length === 0) {
+    if (
+      commandDetailsCollection.length === 0 &&
+      initialCommandDetailsCollection.length === 0
+    ) {
       if (id === "new") {
         setChange(false);
       }

@@ -10,12 +10,19 @@ interface ISaleDataGraphicsProps {
 }
 
 const SaleDataGraphics = ({ data }: ISaleDataGraphicsProps) => {
+  const copyData = [...data];
+  const top5OfAccumulatedSales = copyData.sort(
+    (a, b) => a.accumulatedSales - b.accumulatedSales
+  );
+
   const chart1 = {
-    labels: data.map((d) => dayjs(d.createdAt).format("DD/MM/YYYY")),
+    labels: top5OfAccumulatedSales.map((d) =>
+      dayjs(d.createdAt).format("DD/MM/YYYY")
+    ),
     datasets: [
       {
         label: "Monto recaudado",
-        data: data.map((d) => d.accumulatedSales),
+        data: top5OfAccumulatedSales.map((d) => d.accumulatedSales),
         hoverOffset: 4,
         backgroundColor: colorsWithAlphaForChart,
         borderColor: colorsForChart,

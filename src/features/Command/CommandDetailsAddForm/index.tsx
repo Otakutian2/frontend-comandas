@@ -132,7 +132,7 @@ const CommandDetailsAddForm: React.FC<CommandDetailsAddFormProps> = ({
         </Box>
       </DialogTitle>
       <DialogContent>
-        <Alert severity="info" sx={{ textAlign: "justify", mb: 2 }}>
+        <Alert severity="warning" sx={{ textAlign: "justify", mb: 2 }}>
           Ten en cuenta que al agregar el mismo plato a la comanda, este será
           reemplazado. Si deseas aumentar, disminuir o editar la observación,
           puedes utilizar la función de editar.

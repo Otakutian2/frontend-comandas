@@ -11,15 +11,20 @@ interface IDishOrderStatisticsGraphicsProps {
 const DishOrderStatisticsGraphics = ({
   data,
 }: IDishOrderStatisticsGraphicsProps) => {
+  const copyData = [...data];
+  const top5OfQuantityOfDishesSold = copyData
+    .sort((a, b) => a.quantityOfDishesSold - b.quantityOfDishesSold)
+    .slice(0, 5);
+  const top5OfTotalSales = copyData
+    .sort((a, b) => a.totalSales - b.totalSales)
+    .slice(0, 5);
+
   const chart1 = {
-    labels: data.map((d) => d.category),
+    labels: top5OfQuantityOfDishesSold.map((d) => d.name),
     datasets: [
       {
         label: "Cantidad de platos vendidos",
-        data: data
-          .map((d) => d.quantityOfDishesSold)
-          .sort((a, b) => b - a)
-          .slice(0, 5),
+        data: top5OfQuantityOfDishesSold.map((d) => d.quantityOfDishesSold),
         hoverOffset: 4,
         backgroundColor: colorsWithAlphaForChart.slice().reverse(),
         borderColor: colorsForChart.slice().reverse(),
@@ -29,11 +34,11 @@ const DishOrderStatisticsGraphics = ({
   };
 
   const chart2 = {
-    labels: data.map((d) => d.category),
+    labels: top5OfTotalSales.map((d) => d.name),
     datasets: [
       {
         label: "Cantidad recaudada",
-        data: data.map((d) => d.totalSales).slice(0, 5),
+        data: top5OfTotalSales.map((d) => d.totalSales),
         hoverOffset: 4,
         backgroundColor: colorsWithAlphaForChart,
         borderColor: colorsForChart,

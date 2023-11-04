@@ -1,7 +1,7 @@
 import { ICustomerGet } from "@/interfaces/ICustomer";
 import { IReceiptTypeGet } from "@/interfaces/IReceiptType";
-import { IEmployeeGet } from "@/interfaces/IEmployee";
 import { ICashGet } from "@/interfaces/ICash";
+import { ICommandGet } from "../ICommand";
 
 interface IReceiptReportGet {
   id: number;
@@ -9,7 +9,7 @@ interface IReceiptReportGet {
   totalPrice: number;
   customer: ICustomerGet;
   receiptType: IReceiptTypeGet;
-  employee: IEmployeeGet;
+  command: ICommandGet;
   cash: ICashGet;
 }
 

@@ -41,7 +41,7 @@ const ReceiptReportTable = ({ data }: IReceiptReportTableProps) => {
       minWidth: 250,
       flex: 2,
       valueGetter: (params: GridValueGetterParams<IReceiptReportGet>) =>
-        `${params.row.employee.firstName} ${params.row.employee.lastName}`,
+        `${params.row.command.employee.firstName} ${params.row.command.employee.lastName}`,
     },
     {
       field: "createdAt",
