@@ -176,8 +176,12 @@ const removeAccents = (text: string) => {
   );
 };
 
-const roundDecimal = (decimal: number) => {
+const roundTwoDecimal = (decimal: number) => {
   return Math.round(decimal * 100) / 100;
+};
+
+const roundOneDecimal = (decimal: number) => {
+  return Math.round(decimal * 10) / 10;
 };
 
 const colorsForChart = [
@@ -213,7 +217,8 @@ export {
   removeAccents,
   onlyNumber,
   onlyDecimal,
-  roundDecimal,
+  roundTwoDecimal,
+  roundOneDecimal,
   colorsForChart,
   colorsWithAlphaForChart,
   ramdonKey,

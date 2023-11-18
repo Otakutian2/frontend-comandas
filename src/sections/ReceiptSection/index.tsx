@@ -28,7 +28,7 @@ import ReceiptPaymentMethodCollection from "@/features/Receipt/ReceiptPaymentMet
 import useSWR, { useSWRConfig } from "swr";
 import { IPaymentMethodGet } from "@/interfaces/IPaymentMethod";
 import { createObject, fetchAll } from "@/services/HttpRequests";
-import { removeAccents, roundDecimal } from "@/utils";
+import { removeAccents, roundTwoDecimal, roundOneDecimal } from "@/utils";
 import { FormikProps } from "formik";
 import { showErrorMessage, showSuccessMessage } from "@/lib";
 import { AxiosError } from "axios";
@@ -99,7 +99,7 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
     (acc, curr) => acc + curr.orderPrice,
     0
   );
-  const igv = roundDecimal(subTotal * 0.18);
+  const igv = roundOneDecimal(subTotal * 0.18);
   const initialValues: IReceiptInfo = {
     subTotal,
     igv,
@@ -107,8 +107,8 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
     discount: 0,
     customer: null,
     receiptDetailsCollection: null,
-    total: roundDecimal(subTotal + igv),
-    amountDue: roundDecimal(subTotal + igv),
+    total: roundTwoDecimal(subTotal + igv),
+    amountDue: roundTwoDecimal(subTotal + igv),
   };
   const theme = useTheme();
   const [receiptDetails, setReceiptDetails] =
@@ -125,14 +125,14 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
 
   useEffect(() => {
     setReceiptDetails((prev) => {
-      const total = roundDecimal(
+      const total = roundTwoDecimal(
         receiptDetails.subTotal +
           receiptDetails.igv +
           receiptDetails.additionalAmount -
           receiptDetails.discount
       );
 
-      const amountDue = roundDecimal(
+      const amountDue = roundTwoDecimal(
         total -
           (receiptDetails.receiptDetailsCollection?.reduce(
             (acc, curr) => acc + curr.amount,

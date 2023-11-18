@@ -16,7 +16,7 @@ import Title from "@/components/Title";
 import { commandDetailsSchema } from "@/schemas/Command";
 import { useFormik } from "formik";
 import { ICommandDetailsGet } from "@/interfaces/ICommand";
-import { onlyNumber, roundDecimal } from "@/utils";
+import { onlyNumber, roundTwoDecimal } from "@/utils";
 import { showSuccessToastMessage } from "@/lib/Messages";
 import LoaderComponent from "@/components/LoaderComponent";
 
@@ -60,7 +60,7 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
 
       collection[index].dishQuantity = dishQuantity;
       collection[index].observation = observation;
-      collection[index].orderPrice = roundDecimal(
+      collection[index].orderPrice = roundTwoDecimal(
         dishQuantity * collection[index].dish.price
       );
 

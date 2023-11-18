@@ -20,7 +20,7 @@ import ImageView from "@/components/ImageView";
 import { commandDetailsSchema } from "@/schemas/Command";
 import { useFormik } from "formik";
 import { ICommandDetailsGet } from "@/interfaces/ICommand";
-import { onlyNumber, roundDecimal } from "@/utils";
+import { onlyNumber, roundTwoDecimal } from "@/utils";
 import { showSuccessToastMessage } from "@/lib/Messages";
 import LoaderComponent from "@/components/LoaderComponent";
 import Alert from "@mui/material/Alert";
@@ -107,10 +107,10 @@ const CommandDetailsAddForm: React.FC<CommandDetailsAddFormProps> = ({
 
       const commandDetails: ICommandDetailsGet = {
         dish: dishSelected,
-        dishPrice: roundDecimal(dishSelected.price),
+        dishPrice: roundTwoDecimal(dishSelected.price),
         dishQuantity: values.dishQuantity,
         observation: values.observation.trim() || undefined,
-        orderPrice: roundDecimal(dishSelected.price * values.dishQuantity),
+        orderPrice: roundTwoDecimal(dishSelected.price * values.dishQuantity),
       };
 
       addToCommandDetailsCollection(commandDetails);

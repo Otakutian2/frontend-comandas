@@ -8,7 +8,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import InputAdornment from "@mui/material/InputAdornment";
-import { onlyDecimal, roundDecimal } from "@/utils";
+import { onlyDecimal, roundTwoDecimal } from "@/utils";
 import { Formik } from "formik";
 import {
   receiptAddAdditionalAmountSchema,
@@ -52,7 +52,7 @@ const ReceiptAddDiscountAndAdditionalAmount: React.FC<
           validateOnChange={false}
           validationSchema={receiptAddAdditionalAmountSchema}
           onSubmit={({ additionalAmount }, { resetForm }) => {
-            const additionalAmountRounded = roundDecimal(additionalAmount);
+            const additionalAmountRounded = roundTwoDecimal(additionalAmount);
 
             setReceiptDetails((prev) => ({
               ...prev,
@@ -172,7 +172,7 @@ const ReceiptAddDiscountAndAdditionalAmount: React.FC<
             { discount },
             { resetForm, setFieldError, setSubmitting }
           ) => {
-            const discountRounded = roundDecimal(discount);
+            const discountRounded = roundTwoDecimal(discount);
 
             if (receiptDetails.total - discountRounded < 0) {
               setSubmitting(false);

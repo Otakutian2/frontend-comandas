@@ -8,7 +8,7 @@ import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import InputAdornment from "@mui/material/InputAdornment";
-import { onlyDecimal, roundDecimal } from "@/utils";
+import { onlyDecimal, roundTwoDecimal } from "@/utils";
 import ComboBox from "@/components/ComboBox";
 import { IPaymentMethodGet } from "@/interfaces";
 import { Formik } from "formik";
@@ -66,7 +66,7 @@ const ReceiptAddAmout: React.FC<ReceiptAddAmoutProps> = ({
               (x) => x.paymentMethodId === paymentMethodId
             ) ?? -1;
 
-          const amountAccumulated = roundDecimal(
+          const amountAccumulated = roundTwoDecimal(
             (receiptDetails.receiptDetailsCollection?.reduce(
               (acc, curr) => acc + curr.amount,
               0
@@ -88,12 +88,12 @@ const ReceiptAddAmout: React.FC<ReceiptAddAmoutProps> = ({
 
             if (existsPaymentMethod === -1) {
               receiptDetailsCollection.push({
-                amount: roundDecimal(amount),
+                amount: roundTwoDecimal(amount),
                 paymentMethodId: paymentMethodId!,
               });
             } else {
               receiptDetailsCollection[existsPaymentMethod].amount +=
-                roundDecimal(amount);
+                roundTwoDecimal(amount);
             }
 
             return { ...prev, receiptDetailsCollection };
