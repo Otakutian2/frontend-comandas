@@ -17,6 +17,7 @@ import ReplyIcon from "@mui/icons-material/Reply";
 import SaveIcon from "@mui/icons-material/Save";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import CommandAddForm from "@/features/Command/CommandAddForm";
 import { useUserStore } from "@/store/user";
 import {
@@ -36,6 +37,7 @@ import CommandDetailsTable from "@/features/Command/CommandDetailsTable";
 import {
   showErrorMessage,
   showQuestionMessage,
+  showSuccessMessage,
   showSuccessToastMessage,
   showWarningMessage,
 } from "@/lib/Messages";
@@ -137,6 +139,7 @@ const CommandDetailsSectionContent = ({
   const canManageCommand = role === "Administrador" || role === "Mesero";
   const canGenerateReceipt = role === "Administrador" || role === "Cajero";
   const canChangeState = role === "Administrador" || role === "Cocinero";
+  const condicionalBotonTicket = command?.commandState.name === "Generado" || command?.commandState.name === "Preparado"
 
   useEffect(() => {
     if (id === "new") {
@@ -416,6 +419,29 @@ const CommandDetailsSectionContent = ({
     });
   };
 
+  const generateTicket = async () =>{
+    try {
+      setLoading(true);
+      const result = await createObject<any, any>(
+        `api/ThermalPrinter`,
+        {commandId: id} as any
+      );
+
+      showSuccessMessage(result.message)
+      
+      
+    } catch (err) {
+      const error = err as AxiosError;
+      showErrorMessage({ title: error.response?.data as string });
+    }finally{
+      setLoading(false);
+    }
+  }
+  
+ 
+ 
+  
+  
   return (
     <ContentBox sxProps={{ p: 2 }}>
       <Title>{id === "new" ? "Nueva Comanda" : `Comanda - ${id}`}</Title>
@@ -514,7 +540,6 @@ const CommandDetailsSectionContent = ({
                           });
                           return;
                         }
-
                         prepareCommand();
                       }}
                       disabled={loading}
@@ -545,6 +570,28 @@ const CommandDetailsSectionContent = ({
                     </Button>
                   )}
 
+                  {condicionalBotonTicket
+                    && (<Button
+                      variant="contained"
+                      color="secondary"
+                      startIcon={<ConfirmationNumberIcon />}
+                      onClick={() => {
+                        if (change) {
+                          showWarningMessage({
+                            title:
+                              "Se ha detectado cambios, debes guardar la comanda antes de generarTicket",
+                          });
+                          return;
+                        }
+                        generateTicket()
+ 
+                      }}
+                      disabled={loading}
+                    >
+                      Generar Ticket
+                    </Button>)
+                  }
+
                 {canManageCommand && (
                   <Button
                     variant="contained"
@@ -558,6 +605,8 @@ const CommandDetailsSectionContent = ({
                 )}
               </>
             )}
+
+            
 
             <Button
               variant="contained"

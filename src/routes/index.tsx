@@ -9,4 +9,5 @@ export const APP_ROUTES = {
   account: `${APP_PATHS.base}/account`,
   error404: `${APP_PATHS.base}/404`,
   error403: `${APP_PATHS.base}/403`,
+  cdp:  `${APP_PATHS.base}/reports/receipt`
 };

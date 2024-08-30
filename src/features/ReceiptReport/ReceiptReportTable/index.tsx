@@ -1,5 +1,6 @@
 import { IReceiptReportGet } from "@/interfaces/IReceiptReport";
 import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import Box from "@mui/material/Box";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
@@ -10,16 +11,21 @@ import {
   GridValueGetterParams,
   GridValueFormatterParams,
 } from "@mui/x-data-grid";
-import { AxiosServices } from "@/services";
+import { AxiosServices, createObject } from "@/services";
 import { DataTable } from "@/components";
 import { Typography } from "@mui/material";
-import { showSuccessMessage } from "@/lib/Messages";
+import { showErrorMessage, showSuccessMessage } from "@/lib/Messages";
+import { AxiosError } from "axios";
+import { useState } from "react";
 
 interface IReceiptReportTableProps {
   data: IReceiptReportGet[];
 }
 
 const ReceiptReportTable = ({ data }: IReceiptReportTableProps) => {
+
+  const [loading, setLoading] = useState<boolean>(false);
+
   const columns: GridColDef[] = [
     {
       field: "id",
@@ -49,6 +55,7 @@ const ReceiptReportTable = ({ data }: IReceiptReportTableProps) => {
       type: "dateTime",
       minWidth: 160,
       flex: 1,
+      sortingOrder : ["desc"],
       valueGetter: (params: GridValueGetterParams<IReceiptReportGet>) =>
         dayjs(params.row.createdAt).toDate(),
     },
@@ -77,6 +84,7 @@ const ReceiptReportTable = ({ data }: IReceiptReportTableProps) => {
       align: "left",
       minWidth: 140,
       flex: 1,
+     
       valueFormatter: (params: GridValueFormatterParams) =>
         `S/. ${(params.value as number).toFixed(2)}`,
     },
@@ -84,69 +92,115 @@ const ReceiptReportTable = ({ data }: IReceiptReportTableProps) => {
       field: "actions",
       type: "actions",
       headerName: "Acciones",
-      minWidth: 100,
+      minWidth: 300,
       flex: 1,
       getActions: (receiptReport: GridRowParams<IReceiptReportGet>) => {
         return [
-          <GridActionsCellItem
-            key={receiptReport.row.id}
-            icon={
-              <>
-                <Box
-                  sx={{
-                    display: "flex",
-                    bgcolor: "error.main",
-                    color: "white",
-                    padding: "0.5rem 0.7rem",
-                    borderRadius: 1,
-                  }}
-                >
-                  <InsertDriveFile />
-                  <Typography>PDF</Typography>
-                </Box>
-              </>
-            }
-            label="PDF"
-            color="error"
-            onClick={async () => {
-              const { isDismissed } = await Swal.fire({
-                title: "Cargando PDF ...",
-                allowEscapeKey: false,
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                willOpen: async () => {
-                  Swal.showLoading();
-
-                  console.log(receiptReport.row.id);
-                  const { data } = await AxiosServices.get(
-                    `api/report/receipt/${receiptReport.row.id}`,
-                    { responseType: "blob" }
-                  );
-
-                  const url = URL.createObjectURL(data);
-
-                  window.open(url, "_blank");
-
-                  URL.revokeObjectURL(url);
-                  Swal.close();
-                },
-              });
-
-              if (isDismissed) {
-                showSuccessMessage(
-                  "¡Carga completada! Ya puedes visualizar el comprobante de pago"
-                );
+           <> 
+            <GridActionsCellItem
+              key={receiptReport.row.id}
+              icon={
+                <>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      bgcolor: "error.main",
+                      color: "white",
+                      padding: "0.5rem 0.7rem",
+                      borderRadius: 1,
+                    }}
+                  >
+                    <InsertDriveFile />
+                    <Typography>PDF</Typography>
+                  </Box>
+                </>
               }
-            }}
-          />,
+              label="PDF"
+              color="error"
+              onClick={async () => {
+                const { isDismissed } = await Swal.fire({
+                  title: "Cargando PDF ...",
+                  allowEscapeKey: false,
+                  allowOutsideClick: false,
+                  showConfirmButton: false,
+                  willOpen: async () => {
+                    Swal.showLoading();
+
+                    console.log(receiptReport.row.id);
+                    const { data } = await AxiosServices.get(
+                      `api/report/receipt/${receiptReport.row.id}`,
+                      { responseType: "blob" }
+                    );
+
+                    const url = URL.createObjectURL(data);
+
+                    window.open(url, "_blank");
+
+                    URL.revokeObjectURL(url);
+                    Swal.close();
+                  },
+                });
+
+                if (isDismissed) {
+                  showSuccessMessage(
+                    "¡Carga completada! Ya puedes visualizar el comprobante de pago"
+                  );
+                }
+              }}
+            />
+            <GridActionsCellItem
+              key={receiptReport.row.id+1}
+              icon={
+                <Box
+                sx={{
+                  display: "flex",
+                  bgcolor: "primary.main",
+                  color: "white",
+                  padding: "0.5rem 0.7rem",
+                  borderRadius: 1,
+                }}
+              >
+                <ConfirmationNumberIcon
+                 sx={{marginRight :1}}
+                />
+                <Typography> Generar Ticket</Typography>
+              </Box>
+              }
+              label="Ticket"
+              color="primary"
+              disabled={loading}
+              onClick={async () => {
+                generateTicket(receiptReport.row.command.id);
+              }}
+            />
+           </>
+          
         ];
       },
     },
   ];
 
+  const generateTicket = async (id:number) =>{
+    try {
+      setLoading(true)
+      const result = await createObject<any, any>(
+        `api/ThermalPrinter`,
+        {commandId:id} as any
+      );
+      showSuccessMessage(result.message)
+      
+    } catch (err) {
+      const error = err as AxiosError ;
+      console.log(error);
+      
+      showErrorMessage({ title: (error.response?.data as {message :string} ).message  } );
+    }finally{
+      setLoading(false)
+    }
+  }
   return (
     <>
-      <DataTable columns={columns} rows={data} />
+      <DataTable columns={columns}  rows={data}  />
     </>
   );
 };

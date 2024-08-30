@@ -99,7 +99,7 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
     (acc, curr) => acc + curr.orderPrice,
     0
   );
-  const igv = roundOneDecimal(subTotal * 0.18);
+  const igv = roundTwoDecimal(subTotal * 0.18);
   const initialValues: IReceiptInfo = {
     subTotal,
     igv,
@@ -202,7 +202,7 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
 
           mutate("api/table/commands");
           showSuccessMessage("Comprobante generado con exito");
-          router.push(APP_ROUTES.command);
+          router.push(APP_ROUTES.cdp);
         } catch (err) {
           if (err instanceof AxiosError) {
             const error = err as AxiosError;

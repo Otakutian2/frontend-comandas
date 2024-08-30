@@ -1,4 +1,5 @@
 import { APP_ROUTES } from "@/routes";
+
 import axios, { AxiosError } from "axios";
 import https from "https";
 import Router from "next/router";
@@ -11,12 +12,12 @@ const axiosObject = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    accept: "application/json",
+    accept: "application/json"
   },
   timeout: 20000,
   httpsAgent: agent,
 });
-
+//comando
 axiosObject.interceptors.request.use((config) => {
   // Obtener el token JWT del almacenamiento local
   const authStorage = JSON.parse(localStorage.getItem("auth-storage") || "{}");
