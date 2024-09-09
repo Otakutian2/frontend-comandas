@@ -59,7 +59,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
           <AuthWrapper>
             <ProtectedRoute>
               {getLayout(<Component {...pageProps} />)}
-              <WatsonAssistantChatWrapper />
+              {/* <WatsonAssistantChatWrapper /> */}
             </ProtectedRoute>
           </AuthWrapper>
         </ThemeProvider>

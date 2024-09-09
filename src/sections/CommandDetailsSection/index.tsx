@@ -427,6 +427,23 @@ const CommandDetailsSectionContent = ({
         {commandId: id} as any
       );
 
+      const pdfbyte = result.archivo.fileContents;
+      console.log(pdfbyte)
+
+      const byteCharacters = Buffer.from(pdfbyte,'base64');
+      const byteNumbers = new Uint8Array(byteCharacters);
+      const blob = new Blob([byteNumbers], { type: 'application/pdf' });
+
+      const pdfUrl = window.URL.createObjectURL(blob);
+
+      // Abrir el PDF en una nueva ventana
+      const printWindow = window.open(pdfUrl);
+      
+      // Esperar a que el PDF se cargue y luego imprimirlo
+      printWindow!.onload = function() {
+        printWindow!.print();
+      };
+
       showSuccessMessage(result.message)
       
       
