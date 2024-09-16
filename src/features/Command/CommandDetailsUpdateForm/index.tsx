@@ -45,11 +45,9 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
   };
 
   const updateCommandDetails = ({
-    dishQuantity,
     observation,
     dishId,
   }: {
-    dishQuantity: number;
     observation?: string;
     dishId: string;
   }) => {
@@ -57,12 +55,7 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
       const collection = [...prev];
 
       const index = collection.findIndex((item) => item.dish.id === dishId);
-
-      collection[index].dishQuantity = dishQuantity;
       collection[index].observation = observation;
-      collection[index].orderPrice = roundTwoDecimal(
-        dishQuantity * collection[index].dish.price
-      );
 
       return collection;
     });
@@ -80,14 +73,12 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
     initialValues: {
       categoryId: "",
       dishId: "",
-      dishQuantity: 1,
       observation: "",
     },
     validateOnChange: false,
     validationSchema: commandDetailsSchema,
     onSubmit: async (values) => {
       updateCommandDetails({
-        dishQuantity: values.dishQuantity,
         observation: values.observation.trim() || undefined,
         dishId: values.dishId,
       });
@@ -105,7 +96,6 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
       setValues({
         categoryId: commandDetails.dish.category.id,
         dishId: commandDetails.dish.id,
-        dishQuantity: commandDetails.dishQuantity,
         observation: commandDetails.observation || "",
       });
     }
@@ -161,7 +151,7 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
                 fullWidth={true}
               />
             </Grid>
-
+{/* 
             <Grid item xs={12}>
               <TextField
                 id="dishQuantity"
@@ -184,7 +174,7 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
                 disabled={isSubmitting}
                 fullWidth={true}
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12}>
               <TextField

@@ -33,8 +33,7 @@ interface CommandDetailsTableProps {
   openUpdateFormDialog: () => void;
   openInformationFormDialog: () => void;
   loading: boolean;
-}
-
+} 
 const CommandDetailsTable: React.FC<CommandDetailsTableProps> = ({
   data,
   setCommandDetailsCollection,

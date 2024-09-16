@@ -3,9 +3,11 @@ import { useRouter } from "next/router";
 import { APP_ROUTES } from "@/routes";
 import useSWR, { useSWRConfig } from "swr";
 import { ITableGet } from "@/interfaces/ITable";
+
 import {
   createObject,
   deleteObject,
+  fetchAll,
   getObject,
   updateObject,
 } from "@/services/HttpRequests";
@@ -17,7 +19,7 @@ import ReplyIcon from "@mui/icons-material/Reply";
 import SaveIcon from "@mui/icons-material/Save";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import CommandAddForm from "@/features/Command/CommandAddForm";
 import { useUserStore } from "@/store/user";
 import {
@@ -48,10 +50,25 @@ import { AxiosError } from "axios";
 import { showForm } from "@/lib/Forms";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import SetMealIcon from "@mui/icons-material/SetMeal";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import Typography from "@mui/material/Typography";
 import axiosObject from "@/services/Axios";
 import ReceiptSection from "../ReceiptSection";
 import UserRoles from "@/interfaces/UserRoles";
+import {
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Divider,
+  Grid,
+  IconButton,
+} from "@mui/material";
+import CommandDishesCategory from "@/features/Command/CommandDishesCategory";
+import { IDishGet } from "@/interfaces";
+import CommandCard from "@/features/Command/CommandCard";
+import CounterCommand from "@/features/Command/CounterCommand";
 
 const CommandDetailsSection = () => {
   const router = useRouter();
@@ -106,6 +123,10 @@ const CommandDetailsSectionContent = ({
   );
   const [command, setCommand] = useState<ICommandGet | null>(null);
   const [isLoadingCommand, setIsLoadingCommand] = useState<boolean>(true);
+  const [selecteCategory, setSelecteCategory] = useState<string>("todos");
+  const [dishCollection, setDishCollection] = useState<IDishGet[]>([]);
+  const [loadingDishCollection, setLoadingDishCollection] =
+    useState<boolean>(false);
 
   const [openAddForm, openAddFormDialog, closeAddFormDialog] =
     useOpenClose(false);
@@ -139,7 +160,9 @@ const CommandDetailsSectionContent = ({
   const canManageCommand = role === "Administrador" || role === "Mesero";
   const canGenerateReceipt = role === "Administrador" || role === "Cajero";
   const canChangeState = role === "Administrador" || role === "Cocinero";
-  const condicionalBotonTicket = command?.commandState.name === "Generado" || command?.commandState.name === "Preparado"
+  const condicionalBotonTicket =
+    command?.commandState.name === "Generado" ||
+    command?.commandState.name === "Preparado";
 
   useEffect(() => {
     if (id === "new") {
@@ -216,6 +239,12 @@ const CommandDetailsSectionContent = ({
     console.log("No hubo cambios");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commandDetailsCollection]);
+
+  // Dectetando cambios en selecteCategory
+
+  useEffect(() => {
+    fetchDishCollection();
+  }, [selecteCategory]);
 
   useEffect(() => {
     const handleReloadAndClose = (e: BeforeUnloadEvent) => {
@@ -419,46 +448,62 @@ const CommandDetailsSectionContent = ({
     });
   };
 
-  const generateTicket = async () =>{
+  const generateTicket = async () => {
     try {
       setLoading(true);
-      const result = await createObject<any, any>(
-        `api/ThermalPrinter`,
-        {commandId: id} as any
-      );
+      const result = await createObject<any, any>(`api/ThermalPrinter`, {
+        commandId: id,
+      } as any);
 
       const pdfbyte = result.archivo.fileContents;
-      console.log(pdfbyte)
+      console.log(pdfbyte);
 
-      const byteCharacters = Buffer.from(pdfbyte,'base64');
+      const byteCharacters = Buffer.from(pdfbyte, "base64");
       const byteNumbers = new Uint8Array(byteCharacters);
-      const blob = new Blob([byteNumbers], { type: 'application/pdf' });
+      const blob = new Blob([byteNumbers], { type: "application/pdf" });
 
       const pdfUrl = window.URL.createObjectURL(blob);
 
       // Abrir el PDF en una nueva ventana
       const printWindow = window.open(pdfUrl);
-      
+
       // Esperar a que el PDF se cargue y luego imprimirlo
-      printWindow!.onload = function() {
+      printWindow!.onload = function () {
         printWindow!.print();
       };
 
-      showSuccessMessage(result.message)
-      
-      
+      showSuccessMessage(result.message);
     } catch (err) {
       const error = err as AxiosError;
       showErrorMessage({ title: error.response?.data as string });
-    }finally{
+    } finally {
       setLoading(false);
     }
-  }
-  
- 
- 
-  
-  
+  };
+
+  const fetchDishCollection = async () => {
+    try {
+      setLoadingDishCollection(true);
+      const dishCollection = await fetchAll<IDishGet>(
+        `api/dish/by-category/${selecteCategory}`
+      );
+      setDishCollection(dishCollection);
+    } catch (err) {
+      console.log(err);
+      // showErrorMessage({ title: error.response?.data as string });
+    } finally {
+      setLoadingDishCollection(false);
+    }
+  };
+
+  const estaEnLaLista = (id: string) => {
+    const index = commandDetailsCollection.findIndex(
+      (item) => item.dish.id === id
+    );
+
+    return index !== -1;
+  };
+
   return (
     <ContentBox sxProps={{ p: 2 }}>
       <Title>{id === "new" ? "Nueva Comanda" : `Comanda - ${id}`}</Title>
@@ -469,16 +514,239 @@ const CommandDetailsSectionContent = ({
         </ContentCenter>
       ) : (
         <>
-          <CommandAddForm
-            user={user!}
-            table={table}
-            command={command}
-            totalOrderPrice={totalOrderPrice}
-            customRef={formikRef}
-            saveCommand={saveCommand}
-          />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={7}>
+              <CommandDishesCategory
+                selectedCategory={selecteCategory}
+                setStateCategory={setSelecteCategory}
+              />
+              <Divider />
 
-          {canManageCommand && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  width: "100%",
+                  marginTop: 1,
+                  gap: 1,
+                  marginBottom: 1,
+                  backgroundColor: "#faf0e6",
+                  padding: 1,
+                  borderRadius: 3,
+                }}
+              >
+                {loadingDishCollection ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: "100%",
+                      height: "100px",
+                    }}
+                  >
+                    <Typography>Loading...</Typography>
+                  </Box>
+                ) : (
+                  <>
+                    {dishCollection.map((dish) => (
+                      <CommandCard
+                        key={dish.id}
+                        dish={dish}
+                        setListDishes={setCommandDetailsCollection}
+                        disabled={estaEnLaLista(dish.id)}
+                      />
+                    ))}
+                  </>
+                )}
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={5}>
+              <CommandAddForm
+                user={user!}
+                table={table}
+                command={command}
+                totalOrderPrice={totalOrderPrice}
+                customRef={formikRef}
+                saveCommand={saveCommand}
+              />
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  marginY: 2,
+                  maxHeight: "500px",
+                  overflowY: "auto",
+                }}
+              >
+                <Typography
+                 variant="h6"
+                >
+                 Plato(s) en la comanda {commandDetailsCollection.length} 
+                </Typography>
+
+                {commandDetailsCollection.map((commandDetails) => (
+                  <CounterCommand
+                    key={commandDetails.dish.id}
+                    commandDetail={commandDetails}
+                    openUpdateFormDialog={openUpdateFormDialog}
+                    setCommandDetailsSelected={setCommandDetailsSelected}
+                    setCurrentCommandDetail={setCommandDetailsCollection}
+                  />
+                ))}
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginTop: 2,
+                  gap: 2,
+                }}
+              >
+                {/* <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<ConfirmationNumberIcon />}
+                  onClick={() => {
+                    if (change) {
+                      showWarningMessage({
+                        title:
+                          "Se ha detectado cambios, debes guardar la comanda antes de generarTicket",
+                      });
+                      return;
+                    }
+                    generateTicket();
+                  }}
+                  disabled={loading}
+                >
+                  Generar Ticket
+                </Button> */}
+
+                {canManageCommand && (
+                  <>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      startIcon={<SaveIcon />}
+                      onClick={async () => {
+                        setLoading(true);
+                        await formikRef.current?.submitForm();
+
+                        if (formikRef && !formikRef.current?.isValid) {
+                          setLoading(false);
+                          return;
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      Guardar
+                    </Button>
+                  </>
+                )}
+                {command?.commandState.name === "Generado" &&
+                  canChangeState && (
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      startIcon={<SetMealIcon />}
+                      onClick={() => {
+                        if (change) {
+                          showWarningMessage({
+                            title:
+                              "Se ha detectado cambios, debes guardar la comanda antes de prepararla",
+                          });
+                          return;
+                        }
+                        prepareCommand();
+                      }}
+                      disabled={loading}
+                    >
+                      Servir Plato
+                    </Button>
+                  )}
+                {command?.commandState.name === "Preparado" &&
+                  canGenerateReceipt && (
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      startIcon={<PointOfSaleIcon />}
+                      onClick={() => {
+                        if (change) {
+                          showWarningMessage({
+                            title:
+                              "Se ha detectado cambios, debes guardar la comanda antes de facturarla",
+                          });
+                          return;
+                        }
+                        openReceiptFormDialog();
+                      }}
+                      disabled={loading}
+                    >
+                      Facturar
+                    </Button>
+                  )}
+
+                {condicionalBotonTicket && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<ConfirmationNumberIcon />}
+                    onClick={() => {
+                      if (change) {
+                        showWarningMessage({
+                          title:
+                            "Se ha detectado cambios, debes guardar la comanda antes de generarTicket",
+                        });
+                        return;
+                      }
+                      generateTicket();
+                    }}
+                    disabled={loading}
+                  >
+                    Generar Ticket
+                  </Button>
+                )}
+
+                {canManageCommand && (
+                  <Button
+                    variant="contained"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={deleteCommand}
+                    disabled={loading}
+                  >
+                    Eliminar
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  startIcon={<ReplyIcon />}
+                  onClick={async () => {
+                    if (change) {
+                      const result = await showQuestionMessage({
+                        title: "¿Estás seguro de salir sin guardar cambios?",
+                      });
+
+                      if (result.isDismissed) {
+                        return;
+                      }
+
+                      setChange(false);
+                    }
+
+                    router.push(APP_ROUTES.command);
+                  }}
+                  disabled={loading}
+                >
+                  Volver
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* {canManageCommand && (
             <CommandDetailsAddForm
               open={openAddForm}
               closeDialog={closeAddFormDialog}
@@ -486,6 +754,14 @@ const CommandDetailsSectionContent = ({
             />
           )}
 
+
+
+          <CommandDetailsInformation
+            open={openInformationForm}
+            closeDialog={closeInformationFormDialog}
+            setCommandDetailsSelected={setCommandDetailsSelected}
+            commandDetails={commandDetailsSelected}
+          /> */}
           {canManageCommand && (
             <CommandDetailsUpdateForm
               open={openUpdateForm}
@@ -495,14 +771,6 @@ const CommandDetailsSectionContent = ({
               commandDetails={commandDetailsSelected}
             />
           )}
-
-          <CommandDetailsInformation
-            open={openInformationForm}
-            closeDialog={closeInformationFormDialog}
-            setCommandDetailsSelected={setCommandDetailsSelected}
-            commandDetails={commandDetailsSelected}
-          />
-
           {canGenerateReceipt && (
             <ReceiptSection
               commandId={command?.id}
@@ -512,7 +780,7 @@ const CommandDetailsSectionContent = ({
             />
           )}
 
-          <Box sx={{ marginTop: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
+          {/* <Box sx={{ marginTop: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
             {canManageCommand && (
               <>
                 <Button
@@ -543,27 +811,7 @@ const CommandDetailsSectionContent = ({
 
             {id !== "new" && (
               <>
-                {command?.commandState.name === "Generado" &&
-                  canChangeState && (
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<SetMealIcon />}
-                      onClick={() => {
-                        if (change) {
-                          showWarningMessage({
-                            title:
-                              "Se ha detectado cambios, debes guardar la comanda antes de prepararla",
-                          });
-                          return;
-                        }
-                        prepareCommand();
-                      }}
-                      disabled={loading}
-                    >
-                      Servir Plato
-                    </Button>
-                  )}
+
 
                 {command?.commandState.name === "Preparado" &&
                   canGenerateReceipt && (
@@ -656,7 +904,7 @@ const CommandDetailsSectionContent = ({
             openUpdateFormDialog={openUpdateFormDialog}
             openInformationFormDialog={openInformationFormDialog}
             loading={loading}
-          />
+          /> */}
         </>
       )}
     </ContentBox>

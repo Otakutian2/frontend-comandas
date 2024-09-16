@@ -23,6 +23,7 @@
     "formik": "^2.2.9",
     "gravatar": "^1.8.2",
     "next": "13.2.4",
+    "project_frontend": "file:",
     "react": "18.2.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "18.2.0",

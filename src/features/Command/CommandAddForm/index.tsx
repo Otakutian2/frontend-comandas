@@ -32,6 +32,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
   customRef,
   saveCommand,
 }) => {
+  
   const maxSeatCount =
     table?.seatCount || command?.tableRestaurant?.seatCount || 1;
   const role = user?.role.name as UserRoles;
@@ -57,7 +58,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
           <Grid container spacing={2}>
             {(table || command?.tableRestaurant) && (
               <>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={12}>
                   <TextField
                     label="Número de Mesa"
                     type="text"
@@ -76,7 +77,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={12}>
                   <TextField
                     id="seatCount"
                     type="number"
@@ -105,7 +106,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
               </>
             )}
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={12}>
               <TextField
                 label="Estado de la Comanda"
                 value={command?.commandState.name || "Generado"}
@@ -122,7 +123,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={12}>
               <TextField
                 label="Empleado"
                 defaultValue={employeeName}
@@ -139,7 +140,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={12}>
               <TextField
                 label="Precio Total"
                 value={Number(totalOrderPrice).toFixed(2)}

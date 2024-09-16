@@ -210,6 +210,15 @@ const ramdonKey = (name: string) => {
     .replace("0.", name || "");
 };
 
+const cutString = (text: string, length: number) => {
+
+  if (text.length <= length) {
+    return text;
+  }
+
+  return text.slice(0, length) + "...";
+}
+
 export {
   handleLastPageDeletion,
   uploadToCloudinary,
@@ -222,4 +231,5 @@ export {
   colorsForChart,
   colorsWithAlphaForChart,
   ramdonKey,
+  cutString
 };
