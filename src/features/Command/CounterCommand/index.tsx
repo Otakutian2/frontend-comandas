@@ -213,9 +213,11 @@ function CounterCommand({
             
           >
             <MenuItem
-              onClick={() => {
+              onClick={(ev) => {
+                ev.stopPropagation();
                 setCommandDetailsSelected(commandDetail);
                 openUpdateFormDialog();
+                handleClose(ev);
               }}
             >
               <EditIcon

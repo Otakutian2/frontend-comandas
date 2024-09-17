@@ -90,7 +90,8 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
       );
     },
   });
-
+  
+  
   useEffect(() => {
     if (commandDetails) {
       setValues({
@@ -111,8 +112,8 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
           <Title sx={{ mb: 0 }}>Modificar Plato</Title>
         </Box>
       </DialogTitle>
+     <form onSubmit={handleSubmit} id="form-update-dish-details">
       <DialogContent sx={{ overflowY: "visible", pb: 2 }}>
-        <form onSubmit={handleSubmit} id="form-update-dish-details">
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
@@ -198,7 +199,7 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
               />
             </Grid>
           </Grid>
-        </form>
+ 
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2, pt: 0 }}>
         <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap" }}>
@@ -228,6 +229,7 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
           </Button>
         </Box>
       </DialogActions>
+      </form>
     </Dialog>
   );
 };

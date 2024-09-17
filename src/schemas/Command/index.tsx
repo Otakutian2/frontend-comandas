@@ -16,15 +16,22 @@ const createCommandSchemaDynamic = (
   });
 };
 
-const commandDetailsSchema: Yup.ObjectSchema<ICommandDetailsCreate> =
+interface ICommandDetailsCreateCustom {
+  categoryId: string;
+  dishId: string;
+  // dishQuantity: number;
+  observation?: string;
+}
+
+const commandDetailsSchema: Yup.ObjectSchema<ICommandDetailsCreateCustom> =
   Yup.object({
     categoryId: Yup.string().required(),
     dishId: Yup.string().required(),
-    dishQuantity: Yup.number()
-      .typeError("Debe ser un número")
-      .moreThan(0)
-      .lessThan(16)
-      .required(),
+    // dishQuantity: Yup.number()
+    //   .typeError("Debe ser un número")
+    //   .moreThan(0)
+    //   .lessThan(16)
+    //   .required(),
     observation: Yup.string()
       .matches(
         /^[a-zA-ZñÑáéíóúÁÉÍÓÚ0-9\s.,!-]*$/,
