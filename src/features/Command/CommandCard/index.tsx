@@ -43,24 +43,28 @@ function CommandCard({ dish,setListDishes,disabled }: CommandCardProps) {
       <Card
         key={dish.id}
         sx={{
-          width: 250,
-          height: 350,
           padding: 1,
           borderRadius: 1.5,
           boxShadow: 1,
+          width: {
+            xs: "100%",
+            md: "180px",
+          },
         }}
+
       >
         <CardMedia
           sx={{
-            height: 140,
+            height: 110,
             backgroundSize: "contain",
             backgroundPosition: "center",
           }}
+
           image={dish.image}
           title={dish.name}
         />
         <CardContent>
-          <Typography align="center" gutterBottom variant="h5" component="div">
+          <Typography align="center" flexWrap={"wrap"} gutterBottom variant="body1" component="div">
             {dish.name.toUpperCase()}
           </Typography>
           <Typography align="center" variant="h6" color="text.secondary">

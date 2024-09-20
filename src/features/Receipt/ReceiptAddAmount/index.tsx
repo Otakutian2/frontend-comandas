@@ -121,6 +121,7 @@ const ReceiptAddAmout: React.FC<ReceiptAddAmoutProps> = ({
                   loading={isLoading}
                   handleChange={(paymentMethod: IPaymentMethodGet | null) => {
                     setFieldValue("paymentMethodId", paymentMethod?.id);
+                    setFieldValue("amount", receiptDetails.total);
                   }}
                   disabled={isSubmitting || loadingSubmit}
                   textFieldProps={{

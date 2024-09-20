@@ -99,7 +99,8 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
     (acc, curr) => acc + curr.orderPrice,
     0
   );
-  const igv = roundTwoDecimal(subTotal * 0.18);
+  // const igv = roundTwoDecimal(subTotal * 0.18);
+  const igv = 0;
   const initialValues: IReceiptInfo = {
     subTotal,
     igv,

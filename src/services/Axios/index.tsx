@@ -14,7 +14,7 @@ const axiosObject = axios.create({
     "Content-Type": "application/json",
     accept: "application/json"
   },
-  timeout: 20000,
+  timeout: 300000,
   httpsAgent: agent,
 });
 //comando

@@ -29,11 +29,17 @@ const ReceiptTypeAndCash: React.FC<ReceiptTypAndCashProps> = ({
     () => fetchAll<ICashGet>("api/cash")
   );
 
+ const lastValueReceiptType = receiptTypeCollection?.[receiptTypeCollection.length - 1];
+ const lastValueCash = cashCollection?.[cashCollection.length - 1];
+
   return (
     <Formik<IReceiptTypeAndCash>
-      initialValues={{}}
+      initialValues={{
+        receiptTypeId: 1,
+        cashId: 1,
+      }}
       innerRef={customRef}
-      validateOnChange={false}
+      validateOnChange={true}
       validationSchema={receiptTypeAndCashShema}
       onSubmit={() => {
         generateReceipt();
@@ -51,6 +57,7 @@ const ReceiptTypeAndCash: React.FC<ReceiptTypAndCashProps> = ({
                 handleChange={(receiptType) => {
                   setFieldValue("receiptTypeId", receiptType?.id);
                 }}
+                value={lastValueReceiptType}
                 disabled={isSubmitting}
                 textFieldProps={{
                   label: "Tipo de Comprobante",
@@ -69,6 +76,7 @@ const ReceiptTypeAndCash: React.FC<ReceiptTypAndCashProps> = ({
                   setFieldValue("cashId", cash?.id);
                 }}
                 disabled={isSubmitting}
+               value={lastValueCash}
                 textFieldProps={{
                   label: "Caja",
                   error: Boolean(errors.cashId),

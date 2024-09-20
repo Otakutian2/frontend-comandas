@@ -103,12 +103,12 @@ const ReceiptDetails: React.FC<ReceiptDetailsProps> = ({
                   S/. {receiptDetails.subTotal.toFixed(2)}
                 </TableCellFooter>
               </TableRow>
-              <TableRow>
+              {/* <TableRow>
                 <TableCellFooter align="right">IGV</TableCellFooter>
                 <TableCellFooter align="right">
                   S/. {receiptDetails.igv.toFixed(2)}
                 </TableCellFooter>
-              </TableRow>
+              </TableRow> */}
               <TableRow>
                 <TableCellFooter align="right">Descuento</TableCellFooter>
                 <TableCellFooter align="right">
