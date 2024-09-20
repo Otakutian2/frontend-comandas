@@ -203,6 +203,12 @@ const ReceiptReportTable = ({ data }: IReceiptReportTableProps) => {
         printWindow!.print();
       };
 
+      // Liberar el objeto URL
+
+      window.URL.revokeObjectURL(pdfUrl);
+
+      
+
       showSuccessMessage(result.message);
       
     } catch (err) {
