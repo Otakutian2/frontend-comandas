@@ -1,6 +1,5 @@
 import Yup from "@/schemas/Config";
 import {
-  ICommandDetailsCreate,
   ICommandPrincipal,
 } from "@/interfaces/ICommand";
 
@@ -13,6 +12,7 @@ const createCommandSchemaDynamic = (
       .moreThan(0)
       .lessThan(maxSeatCount + 1, `La cantidad permitida es ${maxSeatCount}`)
       .required(),
+      customerAnonymous : Yup.string().max(150),
   });
 };
 
@@ -33,10 +33,10 @@ const commandDetailsSchema: Yup.ObjectSchema<ICommandDetailsCreateCustom> =
     //   .lessThan(16)
     //   .required(),
     observation: Yup.string()
-      .matches(
-        /^[a-zA-ZñÑáéíóúÁÉÍÓÚ0-9\s.,!-]*$/,
-        "La observación no es válida"
-      )
+      // .matches(
+      //   /^[a-zA-ZñÑáéíóúÁÉÍÓÚ0-9\s.,!-]*$/,
+      //   "La observación no es válida"
+      // )
       .max(150),
   });
 

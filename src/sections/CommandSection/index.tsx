@@ -194,7 +194,9 @@ const CommandSection = () => {
             sx={{ mb: 2 }}
             color="primary"
             onClick={() => {
-              router.push(`${APP_ROUTES.command}/new`);
+              router.push({
+                pathname: `${APP_ROUTES.command}/new`,
+              });
             }}
           >
             Pedido para llevar

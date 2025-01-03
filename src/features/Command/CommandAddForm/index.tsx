@@ -4,6 +4,8 @@ import TextField from "@mui/material/TextField";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import SmartScreenIcon from "@mui/icons-material/SmartScreen";
+import PersonIcon from "@mui/icons-material/Person";
+
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import React from "react";
@@ -14,11 +16,13 @@ import { Formik, FormikProps } from "formik";
 import { createCommandSchemaDynamic } from "@/schemas/Command";
 import { onlyNumber } from "@/utils";
 import UserRoles from "@/interfaces/UserRoles";
+import { useRouter } from "next/router";
 
 interface CommandAddProps {
   table?: ITableGet | null;
   user: ICurrentUser;
   command: ICommandGet | null;
+  isTabledIdExist: boolean;
   totalOrderPrice: number;
   customRef?: React.RefObject<FormikProps<ICommandPrincipal>>;
   saveCommand: () => void;
@@ -31,8 +35,9 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
   totalOrderPrice,
   customRef,
   saveCommand,
+  isTabledIdExist
 }) => {
-  
+    
   const maxSeatCount =
     table?.seatCount || command?.tableRestaurant?.seatCount || 1;
   const role = user?.role.name as UserRoles;
@@ -40,11 +45,17 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
   const employeeName = command?.employee
     ? command.employee.firstName + " " + command.employee.lastName
     : user.firstName + " " + user.lastName;
-
+  const router = useRouter();
+  const tableId = router.query?.tableId;
+  const hasValueTableId = tableId !== undefined && tableId !== null;
+    
+  
   return (
     <Formik<ICommandPrincipal>
       initialValues={{
         seatCount: command?.seatCount || 1,
+        customerAnonymous :  command?.customerAnonymous || "",
+
       }}
       innerRef={customRef}
       validateOnChange={false}
@@ -119,6 +130,30 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
                   ),
                 }}
                 disabled={isSubmitting}
+                fullWidth={true}
+              />
+            </Grid>
+
+            <Grid
+            hidden={hasValueTableId}
+            item xs={12} sm={12}>
+              <TextField
+                id="customerAnonymous"
+                label="Cliente"
+                InputLabelProps={{ shrink: true }}
+                value={values?.customerAnonymous}
+                error={Boolean(errors.customerAnonymous)}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="primary" />
+                    </InputAdornment>
+                  ),
+                  readOnly: !canManageCommand,
+                }}
+                disabled={isSubmitting}
+                helperText={errors.customerAnonymous}
                 fullWidth={true}
               />
             </Grid>

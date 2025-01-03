@@ -5,6 +5,8 @@ import { ITableGet } from "../ITable";
 
 interface ICommandPrincipal {
   seatCount?: number;
+  customerAnonymous?: string | null;
+
 }
 
 interface ICommandCreate extends ICommandPrincipal {

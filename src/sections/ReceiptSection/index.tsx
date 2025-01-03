@@ -203,7 +203,7 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
 
           mutate("api/table/commands");
           showSuccessMessage("Comprobante generado con exito");
-          router.push(APP_ROUTES.cdp);
+          router.push(APP_ROUTES.command);
         } catch (err) {
           if (err instanceof AxiosError) {
             const error = err as AxiosError;

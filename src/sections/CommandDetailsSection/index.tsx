@@ -32,10 +32,7 @@ import {
 } from "@/interfaces/ICommand";
 import ContentCenter from "@/components/ContentCenter";
 import LoaderComponent from "@/components/LoaderComponent";
-import CommandDetailsAddForm from "@/features/Command/CommandDetailsAddForm";
-import ButtonAdd from "@/components/ButtonAdd";
 import useOpenClose from "@/hooks/useOpenClose";
-import CommandDetailsTable from "@/features/Command/CommandDetailsTable";
 import {
   showErrorMessage,
   showQuestionMessage,
@@ -44,26 +41,18 @@ import {
   showWarningMessage,
 } from "@/lib/Messages";
 import CommandDetailsUpdateForm from "@/features/Command/CommandDetailsUpdateForm";
-import CommandDetailsInformation from "@/features/Command/CommandDetailsInformactionForm";
 import { FormikProps } from "formik";
 import { AxiosError } from "axios";
 import { showForm } from "@/lib/Forms";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import SetMealIcon from "@mui/icons-material/SetMeal";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
 import Typography from "@mui/material/Typography";
 import axiosObject from "@/services/Axios";
 import ReceiptSection from "../ReceiptSection";
 import UserRoles from "@/interfaces/UserRoles";
 import {
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
   Divider,
   Grid,
-  IconButton,
 } from "@mui/material";
 import CommandDishesCategory from "@/features/Command/CommandDishesCategory";
 import { IDishGet } from "@/interfaces";
@@ -335,6 +324,7 @@ const CommandDetailsSectionContent = ({
       tableRestaurantId: tableId,
       seatCount: formikRef.current?.values.seatCount,
       commandDetailsCollection: commandDetailsCollectionCreate,
+      customerAnonymous: formikRef.current?.values.customerAnonymous,
     };
 
     try {
@@ -363,6 +353,7 @@ const CommandDetailsSectionContent = ({
     const command: ICommandUpdate = {
       seatCount: formikRef.current?.values.seatCount,
       commandDetailsCollection: commandDetailsCollectionCreate,
+      customerAnonymous: formikRef.current?.values.customerAnonymous ?? null,
     };
 
     try {
@@ -566,6 +557,7 @@ const CommandDetailsSectionContent = ({
               <CommandAddForm
                 user={user!}
                 table={table}
+                isTabledIdExist={tableId !== undefined && tableId !== 0}
                 command={command}
                 totalOrderPrice={totalOrderPrice}
                 customRef={formikRef}
@@ -645,7 +637,7 @@ const CommandDetailsSectionContent = ({
                     </Button>
                   </>
                 )}
-                {command?.commandState.name === "Generado" &&
+                {/* {command?.commandState.name === "Generado" &&
                   canChangeState && (
                     <Button
                       variant="contained"
@@ -665,7 +657,7 @@ const CommandDetailsSectionContent = ({
                     >
                       Servir Plato
                     </Button>
-                  )}
+                  )} */}
                 {command?.commandState.name === "Preparado" &&
                   canGenerateReceipt && (
                     <Button

@@ -13,12 +13,18 @@ interface IReceiptReportGet {
   cash: ICashGet;
 }
 
+export interface IAccumulatedPayment {
+  paymentMethodName: string;
+  totalAmount: number;
+}
+
 interface ISalesDataPerDate {
   createdAt: Date;
   accumulatedSales: number;
   numberOfGeneratedReceipts: number;
   quantityOfDishSales: number;
   bestSellingDish: string;
+  accumulatedPaymentsByDays: IAccumulatedPayment[];
 }
 
 export type { IReceiptReportGet, ISalesDataPerDate };
