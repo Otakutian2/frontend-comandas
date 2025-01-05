@@ -196,6 +196,7 @@ const CommandSection = () => {
             onClick={() => {
               router.push({
                 pathname: `${APP_ROUTES.command}/new`,
+                query: { type: "takeaway" },
               });
             }}
           >

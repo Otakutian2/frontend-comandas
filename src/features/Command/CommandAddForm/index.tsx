@@ -46,10 +46,28 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
     ? command.employee.firstName + " " + command.employee.lastName
     : user.firstName + " " + user.lastName;
   const router = useRouter();
-  const tableId = router.query?.tableId;
-  const hasValueTableId = tableId !== undefined && tableId !== null;
+  const isTakeWay = router.query?.type === "takeaway";
+  const tableId = router.query?.tableId as string;
+  let verifyCantSeat = false;
+
+  if (!command)
+  {
+    if(!isTakeWay && tableId)
+    {
+      verifyCantSeat = true;
+    }else{
+      verifyCantSeat = false;
+    }
+
+
+  }else{
+    verifyCantSeat  = command?.seatCount !== null && command?.seatCount !== undefined;
+      
+  }
+
     
-  
+ 
+    
   return (
     <Formik<ICommandPrincipal>
       initialValues={{
@@ -120,7 +138,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
             <Grid item xs={12} sm={12}>
               <TextField
                 label="Estado de la Comanda"
-                value={command?.commandState.name || "Generado"}
+                value={command?.commandState.name || "Preparando"}
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
@@ -135,7 +153,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
             </Grid>
 
             <Grid
-            hidden={hasValueTableId}
+            hidden={verifyCantSeat}
             item xs={12} sm={12}>
               <TextField
                 id="customerAnonymous"
