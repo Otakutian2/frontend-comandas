@@ -127,8 +127,8 @@ function CounterCommand({
         }}
       >
         <Image
-          src={commandDetail.dish.image}
-          alt={commandDetail.dish.name}
+          src={commandDetail.dish.image || "https://www.redbubble.com/i/sticker/IMAGE-NOT-FOUND-by-ZexyAmbassador/142878675.EJUG5"}
+          alt={commandDetail.dish.name || "Imagen no disponible"}
           width={50}
           height={50}
           style={{ borderRadius: "8px", objectFit: "cover", flexShrink: 0 }}

@@ -62,8 +62,8 @@ const ExtraCard: React.FC<ExtraCardProps> = ({
           }}
         >
           <Image
-            src={extraDish.image}
-            alt={extraDish.name}
+            src={extraDish.image || "https://www.redbubble.com/i/sticker/IMAGE-NOT-FOUND-by-ZexyAmbassador/142878675.EJUG5"}
+            alt={extraDish.name || "Imagen no disponible"}
             fill
             sizes="48px"
             style={{ borderRadius: "8px", objectFit: "cover" }}
