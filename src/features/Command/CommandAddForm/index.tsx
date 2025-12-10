@@ -8,7 +8,7 @@ import PersonIcon from "@mui/icons-material/Person";
 
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
-import React, { useEffect } from "react";
+import React from "react"; // Removed unnecessary useEffect import
 import { ITableGet } from "@/interfaces/ITable";
 import {
   ICommandDetailsGet,
@@ -26,12 +26,11 @@ import DiscountIcon from "@mui/icons-material/Discount";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { MenuItem } from "@mui/material";
 import DiscountType from "@/enum/DiscountType";
+
 interface CommandAddProps {
   table?: ITableGet | null;
   user: ICurrentUser;
   command: ICommandGet | null;
-  // isTabledIdExist: boolean;
-  // totalOrderPrice: number;
   customRef?: React.RefObject<FormikProps<ICommandPrincipal>>;
   saveCommand: () => void;
   commandDetailsCollection: ICommandDetailsGet[];
@@ -41,11 +40,9 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
   table,
   command,
   user,
-  // totalOrderPrice,
   customRef,
   saveCommand,
   commandDetailsCollection,
-  // isTabledIdExist,
 }) => {
   const maxSeatCount =
     table?.seatCount || command?.tableRestaurant?.seatCount || 1;
@@ -70,8 +67,6 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
       command?.seatCount !== null && command?.seatCount !== undefined;
   }
 
-  const [totalCalculated, setTotalCalculated] = React.useState<number>(0);
-
   const getSubtotal = () => {
     let total = 0;
     commandDetailsCollection.forEach((detail) => {
@@ -89,13 +84,13 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
   const calculateDiscountedPrice = (
     originalPrice: number,
     discountValue: number,
-    type : DiscountType
+    type: DiscountType
   ) => {
     const value = Number(discountValue) || 0;
 
-    if (type === 'percentage') {
+    if (type === "percentage") {
       return Math.max(0, originalPrice - originalPrice * (value / 100));
-    } else if (type === 'amount') {
+    } else if (type === "amount") {
       return Math.max(0, originalPrice - value);
     }
     return originalPrice;
@@ -126,17 +121,12 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
         setFieldValue,
         setValues,
       }) => {
-        useEffect(() => {
-          const subtotal = getSubtotal();
-
-          const finalPrice = calculateDiscountedPrice(
-            subtotal,
-            values.discount || 0,
-            values.discountType!
-          );
-
-          setTotalCalculated(finalPrice);
-        }, [commandDetailsCollection, values.discount, values.discountType]);
+        const subtotal = getSubtotal();
+        const totalCalculated = calculateDiscountedPrice(
+          subtotal,
+          values.discount || 0,
+          values.discountType!
+        );
 
         return (
           <form onSubmit={handleSubmit}>
@@ -259,11 +249,10 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
 
                     if (newType === "none") {
                       setValues({
-                        ...values, 
+                        ...values,
                         discountType: "none",
-                        discount: 0, 
+                        discount: 0,
                       });
-
                     } else {
                       setFieldValue("discountType", newType);
                     }
@@ -316,28 +305,6 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
                   fullWidth={true}
                 />
               </Grid>
-
-              {/* <Grid
-                  item
-                  xs={12}
-                  sm={12}
-                  sx={{
-                    mt: 0,
-                    pt: 0,
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<DiscountIcon />}
-                    onClick={() => {
-                    }}
-                    disabled={isSubmitting || !canManageCommand}
-                    fullWidth={true}
-                  >
-                    Aplicar Descuento
-                  </Button>
-                </Grid> */}
 
               <Grid item xs={12} sm={12}>
                 <TextField
