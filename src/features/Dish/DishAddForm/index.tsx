@@ -16,6 +16,7 @@ import { Formik } from "formik";
 import { useState } from "react";
 import { showSuccessToastMessage } from "@/lib/Messages";
 import { AxiosError } from "axios";
+import { FormControlLabel, Switch } from "@mui/material";
 
 const initialValues: IDishCreateOrUpdate = {
   name: "",
@@ -141,6 +142,23 @@ const DishAddForm = ({ customRef, data }: IDishAddFormProps) => {
                     error: Boolean(errors.categoryId),
                     helperText: errors.categoryId,
                   }}
+                />
+              </Grid>
+            <Grid item 
+              container 
+              justifyContent="flex-start"
+              xs={12}>
+                <FormControlLabel
+                  labelPlacement="start"
+                  control={
+                    <Switch
+                      checked={values.active}
+                      onChange={(event) => {
+                        setFieldValue("active", event.target.checked);
+                      }}
+                    />
+                  }
+                  label={values.active ? "Activo" : "Inactivo"}
                 />
               </Grid>
             </Grid>

@@ -8,8 +8,8 @@ const dishSchema: Yup.ObjectSchema<IDishCreateOrUpdate> = Yup.object({
     .required(),
   price: Yup.number()
     .typeError("Debe ser un número")
-    .moreThan(0)
-    .lessThan(400)
+    .min(0, "El precio no puede ser negativo")
+    .max(400, "El precio no puede ser mayor a 400")
     .required(),
   categoryId: Yup.string().required(),
   // AGREGAMOS .required() AQUÍ
