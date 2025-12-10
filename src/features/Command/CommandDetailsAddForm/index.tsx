@@ -111,6 +111,8 @@ const CommandDetailsAddForm: React.FC<CommandDetailsAddFormProps> = ({
         dishQuantity: values.dishQuantity,
         observation: values.observation.trim() || undefined,
         orderPrice: roundTwoDecimal(dishSelected.price * values.dishQuantity),
+        extras: [],
+        uniqueId: "",
       };
 
       addToCommandDetailsCollection(commandDetails);
