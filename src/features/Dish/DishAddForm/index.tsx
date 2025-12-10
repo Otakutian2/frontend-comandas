@@ -21,7 +21,8 @@ const initialValues: IDishCreateOrUpdate = {
   name: "",
   price: 0.0,
   image: "",
-};
+  active: true,
+  };
 
 interface IDishAddFormProps extends IFormProps<IDishCreateOrUpdate> {
   data: ICategoryGet[];
