@@ -3,7 +3,7 @@ import { ICategoryGet } from "@/interfaces/ICategory";
 interface IDishPrincipal {
   name: string;
   price: number;
-  image: string;
+  image?: string;
   active: boolean;
 }
 
