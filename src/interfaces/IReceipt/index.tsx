@@ -1,3 +1,4 @@
+import DiscountType from "@/enum/DiscountType";
 import { ICashGet } from "../ICash";
 import { ICommandGet } from "../ICommand";
 import { ICustomerGet } from "../ICustomer";
@@ -51,6 +52,7 @@ interface IReceiptInfo {
   total: number;
   amountDue: number;
   receiptDetailsCollection: IReceiptDetailsCreate[] | null;
+  discountType: DiscountType;
 }
 
 interface IReceiptTypeAndCash {

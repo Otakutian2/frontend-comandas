@@ -65,7 +65,7 @@ const CommandDishesCategory = (
                         <Typography  variant="body1">Todos</Typography>
                     </Box>
                   {
-                      categories?.map((category) => (
+                      categories?.filter(x => x.id != "C-003").map((category) => (
                         <Box key={category.id} 
                         sx={{
                             ...styleBoxCardCategory,

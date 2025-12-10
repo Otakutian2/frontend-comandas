@@ -1,10 +1,11 @@
 import { IReceiptInfo } from "@/interfaces/IReceipt";
-import { findImage } from "@/sections/ReceiptSection";
+// import { findImage } from "@/sections/ReceiptSection";
 import { useTheme } from "@mui/material";
 import Box from "@mui/material/Box";
 import React from "react";
 import PaymentMethodCard from "@/components/PaymentMethodCard";
 import { IPaymentMethodGet } from "@/interfaces/IPaymentMethod";
+import { findImage } from "@/sections/ReceiptSection";
 
 interface ReceiptPaymentMethodCollectionProps {
   receiptDetails: IReceiptInfo;

@@ -1,12 +1,16 @@
+import DiscountType from "@/enum/DiscountType";
 import { ICommandStateGet } from "../ICommandState";
 import { IDishGet } from "../IDish";
 import { IEmployeeGet } from "../IEmployee";
 import { ITableGet } from "../ITable";
 
+
+
 interface ICommandPrincipal {
   seatCount?: number;
   customerAnonymous?: string | null;
-
+  discountType?: DiscountType;
+  discount?: number | null;
 }
 
 interface ICommandCreate extends ICommandPrincipal {
@@ -38,8 +42,12 @@ interface ICommandForTable {
 }
 
 interface ICommandDetailsPrincipal {
+  id?: number;
   dishQuantity: number;
   observation?: string;
+  uniqueId?: string;
+  extras:  ICommandDetailsExtrasGet[];
+  dishId?: string;
 }
 
 interface ICommandDetailsCreate extends ICommandDetailsPrincipal {
@@ -52,6 +60,17 @@ interface ICommandDetailsGet extends ICommandDetailsPrincipal {
   dish: IDishGet;
 }
 
+interface ICommandDetailsExtrasPrincipal {
+  id?: number;
+  commandDetailsId?: number;
+  quantity: number;
+  extraDishId: string;
+}
+interface ICommandDetailsExtrasGet extends ICommandDetailsExtrasPrincipal {
+  extraDish: IDishGet;
+}
+ 
+
 export type {
   ICommandPrincipal,
   ICommandCreate,
@@ -61,4 +80,8 @@ export type {
   ICommandDetailsPrincipal,
   ICommandDetailsCreate,
   ICommandDetailsGet,
+  ICommandDetailsExtrasPrincipal,
+  ICommandDetailsExtrasGet,
 };
+
+

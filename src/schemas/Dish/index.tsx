@@ -16,7 +16,7 @@ const dishSchema: Yup.ObjectSchema<IDishCreateOrUpdate> = Yup.object({
     .lessThan(400)
     .required(),
   categoryId: Yup.string().required(),
-  image: Yup.string().required(),
+  // image: Yup.string().required(),
 });
 
 export default dishSchema;

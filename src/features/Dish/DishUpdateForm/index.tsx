@@ -16,6 +16,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { showSuccessToastMessage } from "@/lib/Messages";
 import { AxiosError } from "axios";
 import Typography from "@mui/material/Typography";
+import { FormControlLabel, Switch } from "@mui/material";
 
 interface IDishUpdateFormProps
   extends IUpdateFormProps<IDishCreateOrUpdate, IDishGet> {
@@ -38,6 +39,7 @@ const DishUpdateForm = ({
           name: dish.name,
           price: dish.price,
           categoryId: dish.category.id,
+          active: dish.active,
         }}
         innerRef={customRef}
         validateOnChange={false}
@@ -142,6 +144,24 @@ const DishUpdateForm = ({
                     helperText: errors.categoryId,
                     disabled: isSubmitting,
                   }}
+                />
+              </Grid>
+
+              <Grid item 
+              container 
+              justifyContent="flex-start"
+              xs={12}>
+                <FormControlLabel
+                  labelPlacement="start"
+                  control={
+                    <Switch
+                      checked={values.active}
+                      onChange={(event) => {
+                        setFieldValue("active", event.target.checked);
+                      }}
+                    />
+                  }
+                  label={values.active ? "Activo" : "Inactivo"}
                 />
               </Grid>
             </Grid>

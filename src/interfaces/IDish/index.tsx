@@ -4,6 +4,7 @@ interface IDishPrincipal {
   name: string;
   price: number;
   image: string;
+  active: boolean;
 }
 
 interface IDishCreateOrUpdate extends IDishPrincipal {

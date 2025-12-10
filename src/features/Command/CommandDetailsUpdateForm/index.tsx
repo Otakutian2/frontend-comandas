@@ -1,35 +1,46 @@
-import React, { useEffect } from "react";
-import InputAdornment from "@mui/material/InputAdornment";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
-import ProductionQuantityLimitsIcon from "@mui/icons-material/ProductionQuantityLimits";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useFormik } from "formik";
+
+// MUI Components
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Grid,
+  InputAdornment,
+  TextField,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+
+// Icons
 import DinnerDiningIcon from "@mui/icons-material/DinnerDining";
 import FastfoodIcon from "@mui/icons-material/Fastfood";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+
+// Custom Components & Utils
 import Title from "@/components/Title";
-import { commandDetailsSchema } from "@/schemas/Command";
-import { useFormik } from "formik";
-import { ICommandDetailsGet } from "@/interfaces/ICommand";
-import { onlyNumber, roundTwoDecimal } from "@/utils";
-import { showSuccessToastMessage } from "@/lib/Messages";
 import LoaderComponent from "@/components/LoaderComponent";
+import ExtraCard from "../ExtraCard"; // Asumo que esta ruta es correcta en tu proyecto
+import { commandDetailsSchema } from "@/schemas/Command";
+import { showSuccessToastMessage } from "@/lib/Messages";
+import { getObject } from "@/services";
+import { ramdonKey, roundTwoDecimal } from "@/utils";
+
+// Interfaces
+import { ICommandDetailsExtrasGet, ICommandDetailsGet } from "@/interfaces/ICommand";
+import { IDishGet } from "@/interfaces";
 
 interface CommandDetailsUpdateFormProps {
   open: boolean;
   commandDetails: ICommandDetailsGet | null;
   closeDialog: () => void;
-  setCommandDetailsCollection: React.Dispatch<
-    React.SetStateAction<ICommandDetailsGet[]>
-  >;
-  setCommandDetailsSelected: React.Dispatch<
-    React.SetStateAction<ICommandDetailsGet | null>
-  >;
+  setCommandDetailsCollection: React.Dispatch<React.SetStateAction<ICommandDetailsGet[]>>;
+  setCommandDetailsSelected: React.Dispatch<React.SetStateAction<ICommandDetailsGet | null>>;
 }
 
 const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
@@ -39,87 +50,147 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
   setCommandDetailsCollection,
   setCommandDetailsSelected,
 }) => {
-  const clearForm = () => {
-    resetForm();
-    setCommandDetailsSelected(null);
-  };
+  // --- States ---
+  const [availableExtras, setAvailableExtras] = useState<IDishGet[]>([]);
+  const [loadingExtras, setLoadingExtras] = useState<boolean>(false);
 
-  const updateCommandDetails = ({
-    observation,
-    dishId,
-  }: {
-    observation?: string;
-    dishId: string;
-  }) => {
+  // --- Actions ---
+  const handleClose = useCallback(() => {
+    closeDialog();
+    setCommandDetailsSelected(null);
+  }, [closeDialog, setCommandDetailsSelected]);
+
+  const updateLocalCollection = (
+    uniqueId: string,
+    observation: string | undefined,
+    extras: ICommandDetailsExtrasGet[]
+  ) => {
     setCommandDetailsCollection((prev) => {
       const collection = [...prev];
-
-      const index = collection.findIndex((item) => item.dish.id === dishId);
-      collection[index].observation = observation;
-
+      const index = collection.findIndex((item) => item.uniqueId === uniqueId);
+      if (index !== -1) {
+        collection[index] = {
+          ...collection[index],
+          observation,
+          extras,
+        };
+      }
       return collection;
     });
   };
 
-  const {
-    values,
-    errors,
-    handleChange,
-    isSubmitting,
-    handleSubmit,
-    resetForm,
-    setValues,
-  } = useFormik({
-    initialValues: {
-      categoryId: "",
-      dishId: "",
-      observation: "",
-    },
-    validateOnChange: false,
-    validationSchema: commandDetailsSchema,
-    onSubmit: async (values) => {
-      updateCommandDetails({
-        observation: values.observation.trim() || undefined,
-        dishId: values.dishId,
-      });
+  // --- Data Fetching ---
+  const fetchDishExtras = async () => {
+    setLoadingExtras(true);
+    try {
+      const response = await getObject<IDishGet[]>(`api/dish/extras`);
+      if (response) {
+        setAvailableExtras(response.filter((extra) => extra.active));
+      }
+    } catch (error) {
+      console.error("Error fetching extras", error);
+    } finally {
+      setLoadingExtras(false);
+    }
+  };
 
-      clearForm();
-      closeDialog();
-      showSuccessToastMessage(
-        "Plato actualizado en la comanda, asegúrate de guardarla"
+  useEffect(() => {
+    if (open) {
+      fetchDishExtras();
+    }
+  }, [open]);
+
+  // --- Formik Setup ---
+  const formik = useFormik({
+    initialValues: {
+      categoryId: commandDetails?.dish.category.id || "",
+      dishId: commandDetails?.dish.id || "",
+      observation: commandDetails?.observation || "",
+      extras: commandDetails?.extras || ([] as ICommandDetailsExtrasGet[]),
+    },
+    enableReinitialize: true, // Esto reemplaza el useEffect manual para setValues
+    validationSchema: commandDetailsSchema,
+    onSubmit: async (values, { resetForm }) => {
+      if (!commandDetails?.uniqueId) return;
+
+      updateLocalCollection(
+        commandDetails.uniqueId,
+        values.observation.trim() || undefined,
+        values.extras
       );
+
+      resetForm();
+      handleClose();
+      showSuccessToastMessage("Plato actualizado en la comanda (Recuerda guardar)");
     },
   });
-  
-  
-  useEffect(() => {
-    if (commandDetails) {
-      setValues({
-        categoryId: commandDetails.dish.category.id,
-        dishId: commandDetails.dish.id,
-        observation: commandDetails.observation || "",
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commandDetails]);
+ 
+  const handleUpdateExtra = useCallback((extraId: string, newQuantity: number) => {
+    const extraDetails = availableExtras.find((e) => e.id === extraId);
+    if (!extraDetails) return;
+
+    formik.setFieldValue("extras", ((currentExtras: ICommandDetailsExtrasGet[]) => {
+        const existingIndex = currentExtras.findIndex(e => e.extraDish.id === extraId);
+        
+        const updatedExtras = [...currentExtras];
+
+        if (existingIndex > -1) {
+            if (newQuantity === 0) {
+                updatedExtras.splice(existingIndex, 1);
+            } else {
+                updatedExtras[existingIndex] = { 
+                    ...updatedExtras[existingIndex], 
+                    quantity: newQuantity 
+                };
+            }
+        } else if (newQuantity > 0) {
+            // Agregar nuevo
+            updatedExtras.push({
+                extraDish: extraDetails,
+                extraDishId: extraDetails.id,
+                quantity: newQuantity,
+                commandDetailsId: commandDetails?.id,
+            });
+        }
+        return updatedExtras;
+    })(formik.values.extras));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableExtras, commandDetails?.id, formik.values.extras]); // Dependencia controlada
+
+
+  const totalPrice = useMemo(() => {
+    const dishPrice = commandDetails?.dish.price || 0;
+    const dishQuantity = commandDetails?.dishQuantity || 1;
+    
+    const extrasTotal = formik.values.extras.reduce(
+      (sum, extra) => sum + (extra.extraDish.price * extra.quantity),
+      0
+    );
+
+    return roundTwoDecimal((dishPrice * dishQuantity) + extrasTotal);
+  }, [commandDetails?.dish.price, commandDetails?.dishQuantity, formik.values.extras]);
+
+
+  const isSubmitting = formik.isSubmitting;
 
   return (
-    <Dialog open={open}>
+    <Dialog open={open} maxWidth="sm" fullWidth onClose={handleClose}>
       <DialogTitle>
-        <Box sx={{ textAlign: "center" }}>
-          <DinnerDiningIcon sx={{ fontSize: "5rem" }} color="warning" />
-
-          <Title sx={{ mb: 0 }}>Modificar Plato</Title>
+        <Box sx={{ textAlign: "center", pt: 1, pb: 0 }}>
+          <DinnerDiningIcon sx={{ fontSize: "4rem" }} color="warning" />
+          <Title sx={{ mb: 0, fontSize: "1.5rem" }}>Modificar Plato</Title>
         </Box>
       </DialogTitle>
-     <form onSubmit={handleSubmit} id="form-update-dish-details">
-      <DialogContent sx={{ overflowY: "visible", pb: 2 }}>
-          <Grid container spacing={2}>
+
+      <form onSubmit={formik.handleSubmit} id="form-update-dish-details">
+        <DialogContent sx={{ overflowY: "visible", pb: 2 }}>
+          <Grid container spacing={1.5}>
             <Grid item xs={12}>
               <TextField
-                id="categoryId"
-                type="text"
+                fullWidth
+                size="small"
                 label="Categoría"
+                sx={{color: 'black', mb: 1 }}
                 value={commandDetails?.dish.category.name || ""}
                 InputProps={{
                   startAdornment: (
@@ -129,15 +200,12 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
                   ),
                   readOnly: true,
                 }}
-                disabled={isSubmitting}
-                fullWidth={true}
               />
             </Grid>
-
             <Grid item xs={12}>
               <TextField
-                id="dishId"
-                type="text"
+                fullWidth
+                size="small"
                 label="Plato"
                 value={commandDetails?.dish.name || ""}
                 InputProps={{
@@ -148,87 +216,124 @@ const CommandDetailsUpdateForm: React.FC<CommandDetailsUpdateFormProps> = ({
                   ),
                   readOnly: true,
                 }}
-                disabled={isSubmitting}
-                fullWidth={true}
               />
             </Grid>
-{/* 
-            <Grid item xs={12}>
-              <TextField
-                id="dishQuantity"
-                type="number"
-                label="Cantidad de Platos"
-                error={Boolean(errors.dishQuantity)}
-                value={values.dishQuantity}
-                onChange={handleChange}
-                onKeyDown={onlyNumber}
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <ProductionQuantityLimitsIcon color="primary" />
-                    </InputAdornment>
-                  ),
-                  componentsProps: { input: { min: 1, max: 15 } },
-                }}
-                helperText={errors.dishQuantity}
-                disabled={isSubmitting}
-                fullWidth={true}
-              />
-            </Grid> */}
 
+            {/* Sección de Extras */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 1 }} />
+              <Typography
+                variant="subtitle1"
+                fontWeight="bold"
+                gutterBottom
+                color="text.secondary"
+              >
+                Selección de Extras
+              </Typography>
+
+              <Box sx={{ maxHeight: 250, overflowY: "auto", p: 1 }}>
+                {loadingExtras ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : availableExtras.length > 0 ? (
+                  availableExtras.map((extra) => {
+                    const selected = formik.values.extras.find(
+                      (e) => e.extraDish.id === extra.id
+                    );
+                    const selectedQuantity = selected ? selected.quantity : 0;
+
+                    return (
+                      <ExtraCard
+                        key={ramdonKey(extra.id)}
+                        selectedQuantity={selectedQuantity}
+                        handleUpdateExtra={handleUpdateExtra}
+                        extraDish={extra}
+                      />
+                    );
+                  })
+                ) : (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ textAlign: "center", py: 2 }}
+                  >
+                    No hay extras disponibles para este plato.
+                  </Typography>
+                )}
+              </Box>
+              <Divider sx={{ my: 1 }} />
+            </Grid>
+
+            {/* Observación */}
             <Grid item xs={12}>
               <TextField
+                fullWidth
+                size="small"
                 id="observation"
-                type="text"
                 label="Observación"
-                error={Boolean(errors.observation)}
-                value={values.observation}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start"></InputAdornment>
-                  ),
-                  componentsProps: { input: { maxLength: 150 } },
-                }}
                 multiline
                 rows={4}
-                helperText={errors.observation}
+                value={formik.values.observation}
+                onChange={formik.handleChange}
+                error={formik.touched.observation && Boolean(formik.errors.observation)}
+                helperText={formik.touched.observation && formik.errors.observation}
                 disabled={isSubmitting}
-                fullWidth={true}
+                inputProps={{ maxLength: 150 }}
               />
             </Grid>
+
+            {/* Total */}
+            <Grid item xs={12}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  p: 1.5,
+                  borderRadius: 1,
+                  bgcolor: "grey.100",
+                  mt: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <Typography variant="h6" color="text.primary" fontWeight="medium">
+                  Total Plato (x{commandDetails?.dishQuantity})
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" color="primary.main">
+                  S/. {totalPrice.toFixed(2)}
+                </Typography>
+              </Box>
+            </Grid>
           </Grid>
- 
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2, pt: 0 }}>
-        <Box sx={{ display: "flex", width: "100%", gap: 2, flexWrap: "wrap" }}>
-          <Button
-            sx={{ flexGrow: 1 }}
-            variant="contained"
-            type="submit"
-            color="warning"
-            form="form-update-dish-details"
-            size="large"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? <LoaderComponent size="1.5rem" /> : "Actualizar"}
-          </Button>
-          <Button
-            sx={{ flexGrow: 1 }}
-            variant="contained"
-            color="error"
-            disabled={isSubmitting}
-            size="large"
-            onClick={() => {
-              closeDialog();
-              clearForm();
-            }}
-          >
-            Cancelar
-          </Button>
-        </Box>
-      </DialogActions>
+        </DialogContent>
+
+        {/* Botones de Acción */}
+        <DialogActions sx={{ px: 3, pb: 3, pt: 0 }}>
+          <Box sx={{ display: "flex", width: "100%", gap: 2 }}>
+            <Button
+              sx={{ flexGrow: 1 }}
+              variant="contained"
+              color="error"
+              size="large"
+              disabled={isSubmitting}
+              onClick={handleClose}
+            >
+              CANCELAR
+            </Button>
+            <Button
+              sx={{ flexGrow: 1 }}
+              variant="contained"
+              type="submit"
+              color="primary"
+              size="large"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <LoaderComponent size="1.5rem" /> : "ACTUALIZAR"}
+            </Button>
+          </Box>
+        </DialogActions>
       </form>
     </Dialog>
   );

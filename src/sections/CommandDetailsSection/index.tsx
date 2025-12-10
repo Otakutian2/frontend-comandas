@@ -46,13 +46,18 @@ import { AxiosError } from "axios";
 import { showForm } from "@/lib/Forms";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import SetMealIcon from "@mui/icons-material/SetMeal";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"; // Usaremos flecha arriba para indicar el scroll hacia el form
 import Typography from "@mui/material/Typography";
 import axiosObject from "@/services/Axios";
 import ReceiptSection from "../ReceiptSection";
 import UserRoles from "@/interfaces/UserRoles";
 import {
   Divider,
+  Fab,
   Grid,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import CommandDishesCategory from "@/features/Command/CommandDishesCategory";
 import { IDishGet } from "@/interfaces";
@@ -116,16 +121,20 @@ const CommandDetailsSectionContent = ({
   const [dishCollection, setDishCollection] = useState<IDishGet[]>([]);
   const [loadingDishCollection, setLoadingDishCollection] =
     useState<boolean>(false);
-
-  const [openAddForm, openAddFormDialog, closeAddFormDialog] =
-    useOpenClose(false);
+   const formRef = useRef<HTMLDivElement>(null); 
   const [openUpdateForm, openUpdateFormDialog, closeUpdateFormDialog] =
     useOpenClose(false);
-  const [
-    openInformationForm,
-    openInformationFormDialog,
-    closeInformationFormDialog,
-  ] = useOpenClose(false);
+ 
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [showFab, setShowFab] = useState(true);
+  const scrollToForm = () => {
+      formRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    };
 
   const [openReceiptForm, openReceiptFormDialog, closeReceiptFormDialog] =
     useOpenClose(false);
@@ -148,7 +157,7 @@ const CommandDetailsSectionContent = ({
   const role = user?.role.name as UserRoles;
   const canManageCommand = role === "Administrador" || role === "Mesero";
   const canGenerateReceipt = role === "Administrador" || role === "Cajero";
-  const canChangeState = role === "Administrador" || role === "Cocinero";
+  // const canChangeState = role === "Administrador" || role === "Cocinero";
   const condicionalBotonTicket =
     command?.commandState.name === "Generado" ||
     command?.commandState.name === "Preparado";
@@ -205,24 +214,24 @@ const CommandDetailsSectionContent = ({
       return;
     }
 
-    const changeInCommandDetailsCollection =
-      initialCommandDetailsCollection.findIndex((item) => {
-        const commandDetails = commandDetailsCollection.find(
-          (commandDetailsCollection) =>
-            commandDetailsCollection.dish.id === item.dish.id
-        );
+    // const changeInCommandDetailsCollection =
+    //   initialCommandDetailsCollection.findIndex((item) => {
+    //     const commandDetails = commandDetailsCollection.find(
+    //       (commandDetailsCollection) =>
+    //         commandDetailsCollection.dish.id === item.dish.id
+    //     );
 
-        return (
-          commandDetails?.dishQuantity !== item.dishQuantity ||
-          commandDetails?.observation != item.observation
-        );
-      });
+    //     return (
+    //       commandDetails?.dishQuantity !== item.dishQuantity ||
+    //       commandDetails?.observation != item.observation
+    //     );
+    //   });
 
-    if (changeInCommandDetailsCollection !== -1) {
-      setChange(true);
-      console.log("Hubo cambios en los detalles");
-      return;
-    }
+    // if (changeInCommandDetailsCollection !== -1) {
+    //   setChange(true);
+    //   console.log("Hubo cambios en los detalles");
+    //   return;
+    // }
 
     setChange(false);
     console.log("No hubo cambios");
@@ -250,6 +259,27 @@ const CommandDetailsSectionContent = ({
       window.removeEventListener("beforeunload", handleReloadAndClose);
     };
   }, [change]);
+
+useEffect(() => {
+  if (!formRef.current || !isMobile) return;
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+          setShowFab(false);
+      } else {
+          setShowFab(true);
+      }
+    },
+    { threshold: 0.1 } 
+  );
+
+  observer.observe(formRef.current);
+
+  return () => {
+    observer.disconnect();
+  };
+}, [isMobile]);
 
   const showCommmandNotFoundAndRedirect = () => {
     showErrorMessage({
@@ -307,6 +337,8 @@ const CommandDetailsSectionContent = ({
           dishId: commandDetails.dish.id,
           dishQuantity: commandDetails.dishQuantity,
           observation: commandDetails.observation?.trim(),
+          extras: commandDetails.extras ?? [],
+          uniqueId: commandDetails.uniqueId,
         };
       });
 
@@ -325,6 +357,8 @@ const CommandDetailsSectionContent = ({
       seatCount: formikRef.current?.values.seatCount,
       commandDetailsCollection: commandDetailsCollectionCreate,
       customerAnonymous: formikRef.current?.values.customerAnonymous,
+      discountType: formikRef.current?.values.discountType,
+      discount: formikRef.current?.values.discount,
     };
 
     try {
@@ -354,6 +388,8 @@ const CommandDetailsSectionContent = ({
       seatCount: formikRef.current?.values.seatCount,
       commandDetailsCollection: commandDetailsCollectionCreate,
       customerAnonymous: formikRef.current?.values.customerAnonymous ?? null,
+      discountType: formikRef.current?.values.discountType,
+      discount: formikRef.current?.values.discount,
     };
 
     try {
@@ -406,44 +442,45 @@ const CommandDetailsSectionContent = ({
     });
   };
 
-  const prepareCommand = () => {
-    showForm({
-      title: "Preparar Comanda",
-      cancelButtonText: "CANCELAR",
-      confirmButtonText: "PREPARAR",
-      customClass: {
-        confirmButton: "custom-confirm custom-confirm-create",
-      },
-      icon: (
-        <SetMealIcon
-          sx={{
-            display: "block",
-            margin: "auto",
-            fontSize: "5rem",
-            color: "#0D6EFD",
-          }}
-          color="primary"
-        />
-      ),
-      contentHtml: (
-        <Typography>
-          ¿Estás seguro de preparar la comanda {`"${id}"`}?
-        </Typography>
-      ),
-      preConfirm: async () => {
-        await axiosObject.put(`api/command/prepare-command/${id}`);
-        mutate("api/table/commands");
-        await fetchCommand();
-        showSuccessToastMessage("La comanda se ha preparado correctamente");
-      },
-    });
-  };
+  // const prepareCommand = () => {
+  //   showForm({
+  //     title: "Preparar Comanda",
+  //     cancelButtonText: "CANCELAR",
+  //     confirmButtonText: "PREPARAR",
+  //     customClass: {
+  //       confirmButton: "custom-confirm custom-confirm-create",
+  //     },
+  //     icon: (
+  //       <SetMealIcon
+  //         sx={{
+  //           display: "block",
+  //           margin: "auto",
+  //           fontSize: "5rem",
+  //           color: "#0D6EFD",
+  //         }}
+  //         color="primary"
+  //       />
+  //     ),
+  //     contentHtml: (
+  //       <Typography>
+  //         ¿Estás seguro de preparar la comanda {`"${id}"`}?
+  //       </Typography>
+  //     ),
+  //     preConfirm: async () => {
+  //       await axiosObject.put(`api/command/prepare-command/${id}`);
+  //       mutate("api/table/commands");
+  //       await fetchCommand();
+  //       showSuccessToastMessage("La comanda se ha preparado correctamente");
+  //     },
+  //   });
+  // };
 
-  const generateTicket = async () => {
+  const generateTicket = async (showPrice = true) => {
     try {
       setLoading(true);
       const result = await createObject<any, any>(`api/ThermalPrinter`, {
         commandId: id,
+        showPrice: showPrice,
       } as any);
 
       const pdfbyte = result.archivo.fileContents;
@@ -478,22 +515,21 @@ const CommandDetailsSectionContent = ({
       const dishCollection = await fetchAll<IDishGet>(
         `api/dish/by-category/${selecteCategory}`
       );
-      setDishCollection(dishCollection);
+      setDishCollection(dishCollection.filter((dish) => dish.active == true));
     } catch (err) {
-      console.log(err);
-      // showErrorMessage({ title: error.response?.data as string });
+      console.log(err); 
     } finally {
       setLoadingDishCollection(false);
     }
   };
 
-  const estaEnLaLista = (id: string) => {
-    const index = commandDetailsCollection.findIndex(
-      (item) => item.dish.id === id
-    );
+  // const estaEnLaLista = (id: string) => {
+  //   const index = commandDetailsCollection.findIndex(
+  //     (item) => item.dish.id === id
+  //   );
 
-    return index !== -1;
-  };
+  //   return index !== -1;
+  // };
 
   return (
     <ContentBox sxProps={{ p: 2 }}>
@@ -546,24 +582,26 @@ const CommandDetailsSectionContent = ({
                         key={dish.id}
                         dish={dish}
                         setListDishes={setCommandDetailsCollection}
-                        disabled={estaEnLaLista(dish.id)}
+                        disabled={false}
                       />
                     ))}
                   </>
                 )}
               </Box>
             </Grid>
-            <Grid item xs={12} sm={5}>
+            <Grid item xs={12} sm={5} >
               <CommandAddForm
                 user={user!}
                 table={table}
-                isTabledIdExist={tableId !== undefined && tableId !== 0}
+                // isTabledIdExist={tableId !== undefined && tableId !== 0}
                 command={command}
-                totalOrderPrice={totalOrderPrice}
+                // totalOrderPrice={totalOrderPrice}
                 customRef={formikRef}
+                commandDetailsCollection={commandDetailsCollection}
                 saveCommand={saveCommand}
               />
               <Box
+              ref={formRef}
                 sx={{
                   display: "flex",
                   flexDirection: "column",
@@ -581,7 +619,7 @@ const CommandDetailsSectionContent = ({
 
                 {commandDetailsCollection.map((commandDetails) => (
                   <CounterCommand
-                    key={commandDetails.dish.id}
+                    key={commandDetails.uniqueId}
                     commandDetail={commandDetails}
                     openUpdateFormDialog={openUpdateFormDialog}
                     setCommandDetailsSelected={setCommandDetailsSelected}
@@ -597,25 +635,7 @@ const CommandDetailsSectionContent = ({
                   gap: 2,
                 }}
               >
-                {/* <Button
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<ConfirmationNumberIcon />}
-                  onClick={() => {
-                    if (change) {
-                      showWarningMessage({
-                        title:
-                          "Se ha detectado cambios, debes guardar la comanda antes de generarTicket",
-                      });
-                      return;
-                    }
-                    generateTicket();
-                  }}
-                  disabled={loading}
-                >
-                  Generar Ticket
-                </Button> */}
-
+   
                 {canManageCommand && (
                   <>
                     <Button
@@ -637,27 +657,7 @@ const CommandDetailsSectionContent = ({
                     </Button>
                   </>
                 )}
-                {/* {command?.commandState.name === "Generado" &&
-                  canChangeState && (
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<SetMealIcon />}
-                      onClick={() => {
-                        if (change) {
-                          showWarningMessage({
-                            title:
-                              "Se ha detectado cambios, debes guardar la comanda antes de prepararla",
-                          });
-                          return;
-                        }
-                        prepareCommand();
-                      }}
-                      disabled={loading}
-                    >
-                      Servir Plato
-                    </Button>
-                  )} */}
+                
                 {command?.commandState.name === "Preparado" &&
                   canGenerateReceipt && (
                     <Button
@@ -679,6 +679,27 @@ const CommandDetailsSectionContent = ({
                       Facturar
                     </Button>
                   )}
+
+                {condicionalBotonTicket && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<ConfirmationNumberIcon />}
+                    onClick={() => {
+                      if (change) {
+                        showWarningMessage({
+                          title:
+                            "Se ha detectado cambios, debes guardar la comanda antes de generarTicket",
+                        });
+                        return;
+                      }
+                      generateTicket(false);
+                    }}
+                    disabled={loading}
+                  >
+                    Generar Ticket Para Cocina
+                  </Button>
+                )}
 
                 {condicionalBotonTicket && (
                   <Button
@@ -737,23 +758,25 @@ const CommandDetailsSectionContent = ({
               </Box>
             </Grid>
           </Grid>
-
-          {/* {canManageCommand && (
-            <CommandDetailsAddForm
-              open={openAddForm}
-              closeDialog={closeAddFormDialog}
-              setCommandDetailsCollection={setCommandDetailsCollection}
-            />
-          )}
-
-
-
-          <CommandDetailsInformation
-            open={openInformationForm}
-            closeDialog={closeInformationFormDialog}
-            setCommandDetailsSelected={setCommandDetailsSelected}
-            commandDetails={commandDetailsSelected}
-          /> */}
+        {isMobile && showFab && (
+          <Box
+            sx={{
+              position: "fixed",
+              bottom: 16, // Espacio desde el fondo
+              right: 16, // Espacio desde la derecha
+              zIndex: 1000, // Asegura que esté por encima de otros elementos
+            }}
+          >
+            <Fab
+              color="primary"
+              aria-label="ir al formulario"
+              onClick={scrollToForm}
+            >
+              <KeyboardArrowDownIcon />
+            </Fab>
+          </Box>
+        )}
+         
           {canManageCommand && (
             <CommandDetailsUpdateForm
               open={openUpdateForm}
@@ -769,134 +792,11 @@ const CommandDetailsSectionContent = ({
               open={openReceiptForm}
               close={closeReceiptFormDialog}
               commandDetailsCollection={commandDetailsCollection}
+              discount={formikRef.current?.values?.discount || 0}
+              discountType={formikRef.current?.values?.discountType || "none"}
             />
           )}
 
-          {/* <Box sx={{ marginTop: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
-            {canManageCommand && (
-              <>
-                <Button
-                  variant="contained"
-                  color="success"
-                  startIcon={<SaveIcon />}
-                  onClick={async () => {
-                    setLoading(true);
-                    await formikRef.current?.submitForm();
-
-                    if (formikRef && !formikRef.current?.isValid) {
-                      setLoading(false);
-                      return;
-                    }
-                  }}
-                  disabled={loading}
-                >
-                  Guardar
-                </Button>
-
-                <ButtonAdd
-                  openDialog={openAddFormDialog}
-                  text="Agregar Plato"
-                  disabled={loading}
-                />
-              </>
-            )}
-
-            {id !== "new" && (
-              <>
-
-
-                {command?.commandState.name === "Preparado" &&
-                  canGenerateReceipt && (
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<PointOfSaleIcon />}
-                      onClick={() => {
-                        if (change) {
-                          showWarningMessage({
-                            title:
-                              "Se ha detectado cambios, debes guardar la comanda antes de facturarla",
-                          });
-                          return;
-                        }
-                        openReceiptFormDialog();
-                      }}
-                      disabled={loading}
-                    >
-                      Facturar
-                    </Button>
-                  )}
-
-                  {condicionalBotonTicket
-                    && (<Button
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<ConfirmationNumberIcon />}
-                      onClick={() => {
-                        if (change) {
-                          showWarningMessage({
-                            title:
-                              "Se ha detectado cambios, debes guardar la comanda antes de generarTicket",
-                          });
-                          return;
-                        }
-                        generateTicket()
- 
-                      }}
-                      disabled={loading}
-                    >
-                      Generar Ticket
-                    </Button>)
-                  }
-
-                {canManageCommand && (
-                  <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={deleteCommand}
-                    disabled={loading}
-                  >
-                    Eliminar
-                  </Button>
-                )}
-              </>
-            )}
-
-            
-
-            <Button
-              variant="contained"
-              startIcon={<ReplyIcon />}
-              onClick={async () => {
-                if (change) {
-                  const result = await showQuestionMessage({
-                    title: "¿Estás seguro de salir sin guardar cambios?",
-                  });
-
-                  if (result.isDismissed) {
-                    return;
-                  }
-
-                  setChange(false);
-                }
-
-                router.push(APP_ROUTES.command);
-              }}
-              disabled={loading}
-            >
-              Volver
-            </Button>
-          </Box>
-
-          <CommandDetailsTable
-            data={commandDetailsCollection}
-            setCommandDetailsCollection={setCommandDetailsCollection}
-            setCommandDetailsSelected={setCommandDetailsSelected}
-            openUpdateFormDialog={openUpdateFormDialog}
-            openInformationFormDialog={openInformationFormDialog}
-            loading={loading}
-          /> */}
         </>
       )}
     </ContentBox>
