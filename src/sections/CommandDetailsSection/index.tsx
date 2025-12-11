@@ -52,13 +52,7 @@ import Typography from "@mui/material/Typography";
 import axiosObject from "@/services/Axios";
 import ReceiptSection from "../ReceiptSection";
 import UserRoles from "@/interfaces/UserRoles";
-import {
-  Divider,
-  Fab,
-  Grid,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { Divider, Fab, Grid, useMediaQuery, useTheme } from "@mui/material";
 import CommandDishesCategory from "@/features/Command/CommandDishesCategory";
 import { IDishGet } from "@/interfaces";
 import CommandCard from "@/features/Command/CommandCard";
@@ -121,20 +115,19 @@ const CommandDetailsSectionContent = ({
   const [dishCollection, setDishCollection] = useState<IDishGet[]>([]);
   const [loadingDishCollection, setLoadingDishCollection] =
     useState<boolean>(false);
-   const formRef = useRef<HTMLDivElement>(null); 
+  const formRef = useRef<HTMLDivElement>(null);
   const [openUpdateForm, openUpdateFormDialog, closeUpdateFormDialog] =
     useOpenClose(false);
- 
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [showFab, setShowFab] = useState(true);
   const scrollToForm = () => {
-      formRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    };
+    formRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   const [openReceiptForm, openReceiptFormDialog, closeReceiptFormDialog] =
     useOpenClose(false);
@@ -242,7 +235,7 @@ const CommandDetailsSectionContent = ({
 
   useEffect(() => {
     fetchDishCollection();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selecteCategory]);
 
   useEffect(() => {
@@ -261,26 +254,26 @@ const CommandDetailsSectionContent = ({
     };
   }, [change]);
 
-useEffect(() => {
-  if (!formRef.current || !isMobile) return;
+  useEffect(() => {
+    if (!formRef.current || !isMobile) return;
 
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      if (entry.isIntersecting) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
           setShowFab(false);
-      } else {
+        } else {
           setShowFab(true);
-      }
-    },
-    { threshold: 0.1 } 
-  );
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-  observer.observe(formRef.current);
+    observer.observe(formRef.current);
 
-  return () => {
-    observer.disconnect();
-  };
-}, [isMobile]);
+    return () => {
+      observer.disconnect();
+    };
+  }, [isMobile]);
 
   const showCommmandNotFoundAndRedirect = () => {
     showErrorMessage({
@@ -518,7 +511,7 @@ useEffect(() => {
       );
       setDishCollection(dishCollection.filter((dish) => dish.active == true));
     } catch (err) {
-      console.log(err); 
+      console.log(err);
     } finally {
       setLoadingDishCollection(false);
     }
@@ -577,20 +570,37 @@ useEffect(() => {
                     <Typography>Loading...</Typography>
                   </Box>
                 ) : (
-                  <>
+                  <Grid container spacing={1}>
                     {dishCollection.map((dish) => (
-                      <CommandCard
+                      <Grid
+                        item
                         key={dish.id}
-                        dish={dish}
-                        setListDishes={setCommandDetailsCollection}
-                        disabled={false}
-                      />
+                        xs={6} 
+                        lg={4}
+                        xl={3} 
+                      >
+                        <CommandCard
+                          dish={dish}
+                          setListDishes={setCommandDetailsCollection}
+                          disabled={false}
+                        />
+                      </Grid>
                     ))}
-                  </>
+                  </Grid>
+                  // <>
+                  //   {dishCollection.map((dish) => (
+                  //     <CommandCard
+                  //       key={dish.id}
+                  //       dish={dish}
+                  //       setListDishes={setCommandDetailsCollection}
+                  //       disabled={false}
+                  //     />
+                  //   ))}
+                  // </>
                 )}
               </Box>
             </Grid>
-            <Grid item xs={12} sm={5} >
+            <Grid item xs={12} sm={5}>
               <CommandAddForm
                 user={user!}
                 table={table}
@@ -602,7 +612,7 @@ useEffect(() => {
                 saveCommand={saveCommand}
               />
               <Box
-              ref={formRef}
+                ref={formRef}
                 sx={{
                   display: "flex",
                   flexDirection: "column",
@@ -612,10 +622,8 @@ useEffect(() => {
                   overflowY: "auto",
                 }}
               >
-                <Typography
-                 variant="h6"
-                >
-                 Plato(s) en la comanda {commandDetailsCollection.length} 
+                <Typography variant="h6">
+                  Plato(s) en la comanda {commandDetailsCollection.length}
                 </Typography>
 
                 {commandDetailsCollection.map((commandDetails) => (
@@ -636,7 +644,6 @@ useEffect(() => {
                   gap: 2,
                 }}
               >
-   
                 {canManageCommand && (
                   <>
                     <Button
@@ -658,7 +665,7 @@ useEffect(() => {
                     </Button>
                   </>
                 )}
-                
+
                 {command?.commandState.name === "Preparado" &&
                   canGenerateReceipt && (
                     <Button
@@ -759,25 +766,25 @@ useEffect(() => {
               </Box>
             </Grid>
           </Grid>
-        {isMobile && showFab && (
-          <Box
-            sx={{
-              position: "fixed",
-              bottom: 16, // Espacio desde el fondo
-              right: 16, // Espacio desde la derecha
-              zIndex: 1000, // Asegura que esté por encima de otros elementos
-            }}
-          >
-            <Fab
-              color="primary"
-              aria-label="ir al formulario"
-              onClick={scrollToForm}
+          {isMobile && showFab && (
+            <Box
+              sx={{
+                position: "fixed",
+                bottom: 16, // Espacio desde el fondo
+                right: 16, // Espacio desde la derecha
+                zIndex: 1000, // Asegura que esté por encima de otros elementos
+              }}
             >
-              <KeyboardArrowDownIcon />
-            </Fab>
-          </Box>
-        )}
-         
+              <Fab
+                color="primary"
+                aria-label="ir al formulario"
+                onClick={scrollToForm}
+              >
+                <KeyboardArrowDownIcon />
+              </Fab>
+            </Box>
+          )}
+
           {canManageCommand && (
             <CommandDetailsUpdateForm
               open={openUpdateForm}
@@ -797,7 +804,6 @@ useEffect(() => {
               discountType={formikRef.current?.values?.discountType || "none"}
             />
           )}
-
         </>
       )}
     </ContentBox>

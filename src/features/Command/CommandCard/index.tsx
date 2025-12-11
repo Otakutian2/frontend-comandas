@@ -46,17 +46,14 @@ const handleAddDish = useCallback(() => {
     <Card
       key={dish.id}
       sx={{
-        p: 0, 
+        p: 0,
         borderRadius: 2,
-        boxShadow: 3, 
-        width: {
-          xs: "100%",
-          sm: "200px", 
-        },
+        boxShadow: 3,
+        width: "100%", 
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        position: 'relative', 
+        position: 'relative',
         transition: '0.3s',
         '&:hover': {
           boxShadow: 6,
