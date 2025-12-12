@@ -25,6 +25,7 @@ import { useUserStore } from "@/store/user";
 import {
   ICommandCreate,
   ICommandDetailsCreate,
+  ICommandDetailsExtrasGet,
   ICommandDetailsGet,
   ICommandGet,
   ICommandPrincipal,
@@ -131,6 +132,9 @@ const CommandDetailsSectionContent = ({
 
   const [openReceiptForm, openReceiptFormDialog, closeReceiptFormDialog] =
     useOpenClose(false);
+  const [initialDiscount, setInitialDiscount] = useState<number>(0);
+  const [initialDiscountType, setInitialDiscountType] =
+    useState<string>("none");
   const [commandDetailsSelected, setCommandDetailsSelected] =
     useState<ICommandDetailsGet | null>(null);
   const [commandDetailsCollection, setCommandDetailsCollection] = useState<
@@ -192,10 +196,21 @@ const CommandDetailsSectionContent = ({
       return;
     }
 
+    const discountType = formikRef.current?.values.discountType ?? "none";
+    const discountValue = Number(formikRef.current?.values.discount ?? 0);
+    const hasDiscountChange =
+      discountType !== initialDiscountType || discountValue !== initialDiscount;
+
     const seatCount = formikRef.current?.values.seatCount;
     if (command?.seatCount && seatCount !== command.seatCount) {
       setChange(true);
       console.log("Hubo cambios en el asiento");
+      return;
+    }
+
+    if (hasDiscountChange) {
+      setChange(true);
+      console.log("Hubo cambios en el descuento");
       return;
     }
 
@@ -207,29 +222,63 @@ const CommandDetailsSectionContent = ({
       return;
     }
 
-    // const changeInCommandDetailsCollection =
-    //   initialCommandDetailsCollection.findIndex((item) => {
-    //     const commandDetails = commandDetailsCollection.find(
-    //       (commandDetailsCollection) =>
-    //         commandDetailsCollection.dish.id === item.dish.id
-    //     );
+    const normalizeExtras = (
+      extras: ICommandDetailsExtrasGet[] = []
+    ): { id: string; quantity: number }[] =>
+      extras
+        .map((extra) => ({
+          id: extra.extraDishId || extra.extraDish?.id || "",
+          quantity: extra.quantity,
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id));
 
-    //     return (
-    //       commandDetails?.dishQuantity !== item.dishQuantity ||
-    //       commandDetails?.observation != item.observation
-    //     );
-    //   });
+    const hasDetailsChange = initialCommandDetailsCollection.some((item) => {
+      const commandDetails = commandDetailsCollection.find(
+        (commandDetailsCollection) =>
+          commandDetailsCollection.dish.id === item.dish.id
+      );
 
-    // if (changeInCommandDetailsCollection !== -1) {
-    //   setChange(true);
-    //   console.log("Hubo cambios en los detalles");
-    //   return;
-    // }
+      if (!commandDetails) {
+        return true;
+      }
+
+      const baseChange =
+        commandDetails.dishQuantity !== item.dishQuantity ||
+        commandDetails.observation !== item.observation;
+
+      const initialExtras = normalizeExtras(item.extras || []);
+      const currentExtras = normalizeExtras(commandDetails.extras || []);
+
+      const extrasChange =
+        initialExtras.length !== currentExtras.length ||
+        initialExtras.some(
+          (extra, index) =>
+            extra.id !== currentExtras[index]?.id ||
+            extra.quantity !== currentExtras[index]?.quantity
+        );
+
+      return baseChange || extrasChange;
+    });
+
+    if (hasDetailsChange) {
+      setChange(true);
+      console.log("Hubo cambios en los detalles o extras");
+      return;
+    }
 
     setChange(false);
     console.log("No hubo cambios");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commandDetailsCollection]);
+  }, [
+    commandDetailsCollection,
+    command,
+    initialCommandDetailsCollection,
+    initialDiscount,
+    initialDiscountType,
+    formikRef.current?.values?.seatCount,
+    formikRef.current?.values?.discount,
+    formikRef.current?.values?.discountType,
+  ]);
 
   // Dectetando cambios en selecteCategory
 
@@ -303,6 +352,8 @@ const CommandDetailsSectionContent = ({
       setInitialCommandDetailsCollection(
         JSON.parse(JSON.stringify(res.commandDetailsCollection))
       );
+      setInitialDiscount(res.discount ?? 0);
+      setInitialDiscountType(res.discountType ?? "none");
       setChange(false);
       setIsLoadingCommand(false);
     } catch (err) {
@@ -509,7 +560,7 @@ const CommandDetailsSectionContent = ({
       const dishCollection = await fetchAll<IDishGet>(
         `api/dish/by-category/${selecteCategory}`
       );
-      setDishCollection(dishCollection.filter((dish) => dish.active == true));
+      setDishCollection(dishCollection.filter((dish) => dish.active == true && dish.category.id != "C-003"));
     } catch (err) {
       console.log(err);
     } finally {

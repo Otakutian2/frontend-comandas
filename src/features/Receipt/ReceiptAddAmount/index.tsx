@@ -73,6 +73,9 @@ const ReceiptAddAmout: React.FC<ReceiptAddAmoutProps> = ({
             ) || 0) + amount
           );
 
+          console.log('amountAccumulated', amountAccumulated);
+          
+
           if (amountAccumulated > receiptDetails.total) {
             setSubmitting(false);
             return setFieldError(
@@ -120,8 +123,19 @@ const ReceiptAddAmout: React.FC<ReceiptAddAmoutProps> = ({
                   value={data?.find((x) => x.id === values.paymentMethodId)}
                   loading={isLoading}
                   handleChange={(paymentMethod: IPaymentMethodGet | null) => {
-                    setFieldValue("paymentMethodId", paymentMethod?.id);
-                    setFieldValue("amount", receiptDetails.total);
+                    if (paymentMethod != null) {
+                                          setFieldValue("paymentMethodId", paymentMethod?.id);
+
+                    const totalPaid = receiptDetails.receiptDetailsCollection?.reduce(
+                      (acc, curr) => acc + curr.amount,
+                      0
+                    );
+
+                    let total = receiptDetails.total - (totalPaid || 0);
+                    const roundTowDecimalTotal = roundTwoDecimal(total);
+
+                    setFieldValue("amount", roundTowDecimalTotal);
+                    }
                   }}
                   disabled={isSubmitting || loadingSubmit}
                   textFieldProps={{

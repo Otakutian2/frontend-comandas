@@ -95,6 +95,33 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
     }
     return originalPrice;
   };
+const onlyNumber = (event: any) => {
+  const key = event.key;
+  const value = event.target.value;
+
+  // Permitir controles
+  if (
+    key === "Backspace" ||
+    key === "Tab" ||
+    key === "Delete" ||
+    key.startsWith("Arrow")
+  ) {
+    return;
+  }
+
+  // Permitir punto y coma como separadores decimales (solo uno)
+  if (key === "." || key === ",") {
+    if (value.includes(".") || value.includes(",")) {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  // Permitir solo números
+  if (!/^[0-9]$/.test(key)) {
+    event.preventDefault();
+  }
+};
 
   return (
     <Formik<ICommandPrincipal>
@@ -268,7 +295,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
                     ),
                     readOnly: !canManageCommand,
                   }}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || totalCalculated <= 0}
                   fullWidth
                 >
                   <MenuItem value="none">Ninguno</MenuItem>
@@ -277,34 +304,43 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
                 </TextField>
               </Grid>
 
-              <Grid item xs={12} sm={8}>
-                <TextField
-                  id="discount"
-                  label="Descuento (valor)"
-                  name="discount"
-                  type="number"
-                  InputLabelProps={{ shrink: true }}
-                  value={values.discount}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue("discount", val === "" ? 0 : Number(val));
-                  }}
-                  onFocus={(event) => event.target.select()}
-                  error={Boolean(errors.discount)}
-                  onKeyDown={onlyNumber}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PriceChangeIcon color="secondary" />
-                      </InputAdornment>
-                    ),
-                    readOnly: !canManageCommand,
-                  }}
-                  disabled={isSubmitting}
-                  helperText={errors.discount}
-                  fullWidth={true}
-                />
-              </Grid>
+            <Grid item xs={12} sm={8}>
+              <TextField
+                id="discount"
+                label="Descuento (valor)"
+                name="discount"
+                type="text" 
+                InputLabelProps={{ shrink: true }}
+              value={values.discount}
+            onChange={(e) => {
+                    let val = e.target.value;
+
+                    // Mantener solo números y separadores
+                    val = val.replace(/[^0-9.,]/g, "");
+
+                    // Convertir coma → punto para convertirlo a número correctamente
+                    val = val.replace(",", ".");
+
+                    const numericValue = val === "" ? "" : val;
+
+                    setFieldValue("discount", numericValue);
+                }}
+                onKeyDown={onlyNumber} 
+                onFocus={(event) => event.target.select()}
+                error={Boolean(errors.discount)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PriceChangeIcon color="secondary" />
+                    </InputAdornment>
+                  ),
+                  readOnly: !canManageCommand,
+                }}
+                disabled={isSubmitting || values.discountType === "none"}
+                helperText={errors.discount}
+                fullWidth={true}
+              />
+            </Grid>
 
               <Grid item xs={12} sm={12}>
                 <TextField

@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import { useRouter } from "next/router";
 import useSWR, { useSWRConfig } from "swr";
 import { FormikProps } from "formik";
@@ -47,7 +53,6 @@ import {
   IReceiptTypeAndCash,
 } from "@/interfaces/IReceipt";
 
-
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & { children: React.ReactElement },
   ref: React.Ref<unknown>
@@ -61,7 +66,6 @@ const DividerStyled = styled(Divider)(({ theme }) => ({
   borderWidth: "1px",
   borderColor: theme.palette.grey[500],
 }));
-
 
 const calculateSubtotal = (details: ICommandDetailsGet[]) => {
   return details.reduce((total, detail) => {
@@ -88,7 +92,6 @@ const calculateDiscountedPrice = (
   return originalPrice;
 };
 
-
 interface ReceiptSectionProps {
   open: boolean;
   close: () => void;
@@ -109,7 +112,7 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
   const theme = useTheme();
   const router = useRouter();
   const { mutate } = useSWRConfig();
-  
+
   const formikRef = useRef<FormikProps<IReceiptTypeAndCash>>(null);
   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
 
@@ -137,18 +140,25 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
     discount,
     discountType,
     customer: null,
-    receiptDetailsCollection: [], 
+    receiptDetailsCollection: [],
     total: baseTotalAfterDiscount,
     amountDue: baseTotalAfterDiscount,
   };
 
-  const [receiptDetails, setReceiptDetails] = useState<IReceiptInfo>(initialValues);
+  const [receiptDetails, setReceiptDetails] =
+    useState<IReceiptInfo>(initialValues);
 
   useEffect(() => {
     setReceiptDetails((prev) => {
-      const currentPaid = prev.receiptDetailsCollection?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-      const newTotal = roundTwoDecimal(baseTotalAfterDiscount + prev.additionalAmount);
-      
+      const currentPaid =
+        prev.receiptDetailsCollection?.reduce(
+          (acc, curr) => acc + curr.amount,
+          0
+        ) || 0;
+      const newTotal = roundTwoDecimal(
+        baseTotalAfterDiscount + prev.additionalAmount
+      );
+
       return {
         ...prev,
         subTotal,
@@ -160,61 +170,76 @@ const ReceiptSection: React.FC<ReceiptSectionProps> = ({
     });
   }, [baseTotalAfterDiscount, subTotal, discount, discountType]);
 
-useEffect(() => {
-  setReceiptDetails((prev) => {
-    
-    let discountAmount = prev.discount;
+  useEffect(() => {
+    setReceiptDetails((prev) => {
+      let discountAmount = prev.discount;
 
-    if (prev.discountType === "percentage") {
-      discountAmount = (prev.subTotal * prev.discount) / 100;
-    }
+      if (prev.discountType === "percentage") {
+        discountAmount = (prev.subTotal * prev.discount) / 100;
+      }
 
-    const calculatedTotal = roundTwoDecimal(
-      prev.subTotal + prev.igv + prev.additionalAmount - discountAmount
-    );
+      const calculatedTotal = roundTwoDecimal(
+        prev.subTotal + prev.igv + prev.additionalAmount - discountAmount
+      );
 
-    const totalPaid = prev.receiptDetailsCollection?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+      const totalPaid =
+        prev.receiptDetailsCollection?.reduce(
+          (acc, curr) => acc + curr.amount,
+          0
+        ) || 0;
 
-    return {
-      ...prev,
-      total: calculatedTotal,
-      amountDue: roundTwoDecimal(calculatedTotal - totalPaid),
-    };
-  });
-}, [
-  receiptDetails.additionalAmount,
-  receiptDetails.receiptDetailsCollection,
-  receiptDetails.discount, 
-  receiptDetails.discountType,  
-  receiptDetails.subTotal 
-]);
-
+      return {
+        ...prev,
+        total: calculatedTotal,
+        amountDue: roundTwoDecimal(calculatedTotal - totalPaid),
+      };
+    });
+  }, [
+    receiptDetails.additionalAmount,
+    receiptDetails.receiptDetailsCollection,
+    receiptDetails.discount,
+    receiptDetails.discountType,
+    receiptDetails.subTotal,
+  ]);
 
   const handleClose = useCallback(() => {
     close();
   }, [close]);
 
   const generateReceipt = async () => {
-    const { receiptDetailsCollection, amountDue, customer, additionalAmount, discount: currentDiscount } = receiptDetails;
+    const {
+      receiptDetailsCollection,
+      amountDue,
+      customer,
+      additionalAmount,
+      discount: currentDiscount,
+    } = receiptDetails;
+
+    const isDiscount100Percent =
+      (receiptDetails.discountType === "percentage" &&
+        receiptDetails.discount === 100) ||
+      (receiptDetails.discountType === "amount" &&
+        receiptDetails.discount === receiptDetails.subTotal);
 
     // Validations
-    if (!receiptDetailsCollection || receiptDetailsCollection.length === 0) {
-      showErrorMessage({
-        title: "NO SE PUEDE GENERAR COMPROBANTE",
-        contentHtml: "El comprobante debe tener al menos un pago",
-      });
-      return;
+    if (!isDiscount100Percent) {
+      if (!receiptDetailsCollection || receiptDetailsCollection.length === 0) {
+        showErrorMessage({
+          title: "NO SE PUEDE GENERAR COMPROBANTE",
+          contentHtml: "El comprobante debe tener al menos un pago",
+        });
+        return;
+      }
+
+      if (amountDue > 0.1 || amountDue < -0.1) {
+        showErrorMessage({
+          title: "NO SE PUEDE GENERAR COMPROBANTE",
+          contentHtml: `Falta pagar un total de S/. ${amountDue.toFixed(2)}`,
+        });
+        return;
+      }
     }
 
-    if (amountDue > 0.1 || amountDue < -0.1) {
-      showErrorMessage({
-        title: "NO SE PUEDE GENERAR COMPROBANTE",
-        contentHtml: `Falta pagar un total de S/. ${amountDue.toFixed(2)}`,
-      });
-      return;
-    }
-      console.log(loadingSubmit);
-      
     if (!formikRef.current) return;
 
     const receiptCreate: IReceiptCreate = {
@@ -223,7 +248,7 @@ useEffect(() => {
       receiptTypeId: formikRef.current.values.receiptTypeId || 0,
       customerId: customer?.id,
       discount: currentDiscount,
-      receiptDetailsCollection,
+      receiptDetailsCollection : receiptDetailsCollection ?? [],
       additionalAmount,
     };
 
@@ -252,9 +277,11 @@ useEffect(() => {
           } catch (err) {
             if (err instanceof AxiosError) {
               const errorMessage = err.response?.data as string;
-              showErrorMessage({ title: errorMessage || "Error al conectar con el servidor" });
+              showErrorMessage({
+                title: errorMessage || "Error al conectar con el servidor",
+              });
             } else {
-               showErrorMessage({ title: "Error desconocido" });
+              showErrorMessage({ title: "Error desconocido" });
             }
             // Importante: No cerramos el modal si hay error para que el usuario pueda corregir
           }
@@ -269,7 +296,7 @@ useEffect(() => {
   const handleGenerateClick = async () => {
     setLoadingSubmit(true);
     await formikRef.current?.submitForm();
-     setLoadingSubmit(false);
+    setLoadingSubmit(false);
     // if (formikRef.current?.isValid) {
     // } else {
     //     setLoadingSubmit(false);
@@ -303,9 +330,9 @@ useEffect(() => {
               customRef={formikRef}
               generateReceipt={generateReceipt}
             />
-            
+
             <DividerStyled />
-            
+
             <ReceiptAddAmout
               data={paymentMethods}
               isLoading={isLoadingMethods}
@@ -313,13 +340,13 @@ useEffect(() => {
               loadingSubmit={loadingSubmit}
               setReceiptDetails={setReceiptDetails}
             />
-            
+
             {/* Componentes comentados en original mantenidos comentados */}
             {/* <DividerStyled />
             <ReceiptAddDiscountAndAdditionalAmount ... /> */}
-            
+
             <DividerStyled />
-            
+
             <ReceiptAddRetrieveCustomer
               receiptDetails={receiptDetails}
               loadingSubmit={loadingSubmit}
@@ -330,7 +357,7 @@ useEffect(() => {
           {/* Columna Derecha: Detalles del Pedido */}
           <Grid item xs={12} md={6}>
             <DividerStyled sx={{ display: { xs: "block", md: "none" } }} />
-            
+
             <ReceiptDetails
               receiptDetails={receiptDetails}
               commandDetailsCollection={commandDetailsCollection}
@@ -362,7 +389,7 @@ useEffect(() => {
           >
             Salir
           </Button>
-          
+
           <Button
             onClick={handleGenerateClick}
             color="secondary"
@@ -384,18 +411,25 @@ useEffect(() => {
 export const paymentMethodImageCollection = {
   bbva: "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041601/payment-method/t8k5omxjjuerfhsiamt0.png",
   bcp: "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041503/payment-method/a6ovwi0ineypacersbts.png",
-  paypal: "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041624/payment-method/os897u62rmnczgwf3o7i.png",
-  efectivo: "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041564/payment-method/wegvv3jvufdy77fbynj1.png",
-  interbank: "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041587/payment-method/gknaj5gj6w2fq41jetkw.jpg",
-  scotiabank: "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041541/payment-method/algmnx4jjgzzai5msoti.png",
-  nacion: "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041694/payment-method/r4g846zgko9xuq4ipljn.jpg",
+  paypal:
+    "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041624/payment-method/os897u62rmnczgwf3o7i.png",
+  efectivo:
+    "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041564/payment-method/wegvv3jvufdy77fbynj1.png",
+  interbank:
+    "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041587/payment-method/gknaj5gj6w2fq41jetkw.jpg",
+  scotiabank:
+    "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041541/payment-method/algmnx4jjgzzai5msoti.png",
+  nacion:
+    "https://res.cloudinary.com/dpfhjk0sw/image/upload/v1697041694/payment-method/r4g846zgko9xuq4ipljn.jpg",
 };
 
 export const findImage = (text: string) => {
   const keys = Object.keys(paymentMethodImageCollection);
   const key = keys.find((x) => removeAccents(text).toLowerCase().includes(x));
   return key
-    ? paymentMethodImageCollection[key as keyof typeof paymentMethodImageCollection]
+    ? paymentMethodImageCollection[
+        key as keyof typeof paymentMethodImageCollection
+      ]
     : undefined;
 };
 
