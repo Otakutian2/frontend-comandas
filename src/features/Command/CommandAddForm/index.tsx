@@ -34,6 +34,9 @@ interface CommandAddProps {
   customRef?: React.RefObject<FormikProps<ICommandPrincipal>>;
   saveCommand: () => void;
   commandDetailsCollection: ICommandDetailsGet[];
+  setStateDiscount?: React.Dispatch<
+    React.SetStateAction<{ type: string; value: number }>
+  >;
 }
 
 const CommandAddForm: React.FC<CommandAddProps> = ({
@@ -43,6 +46,7 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
   customRef,
   saveCommand,
   commandDetailsCollection,
+  setStateDiscount,
 }) => {
   const maxSeatCount =
     table?.seatCount || command?.tableRestaurant?.seatCount || 1;
@@ -95,33 +99,33 @@ const CommandAddForm: React.FC<CommandAddProps> = ({
     }
     return originalPrice;
   };
-const onlyNumber = (event: any) => {
-  const key = event.key;
-  const value = event.target.value;
+  const onlyNumber = (event: any) => {
+    const key = event.key;
+    const value = event.target.value;
 
-  // Permitir controles
-  if (
-    key === "Backspace" ||
-    key === "Tab" ||
-    key === "Delete" ||
-    key.startsWith("Arrow")
-  ) {
-    return;
-  }
+    // Permitir controles
+    if (
+      key === "Backspace" ||
+      key === "Tab" ||
+      key === "Delete" ||
+      key.startsWith("Arrow")
+    ) {
+      return;
+    }
 
-  // Permitir punto y coma como separadores decimales (solo uno)
-  if (key === "." || key === ",") {
-    if (value.includes(".") || value.includes(",")) {
+    // Permitir punto y coma como separadores decimales (solo uno)
+    if (key === "." || key === ",") {
+      if (value.includes(".") || value.includes(",")) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    // Permitir solo números
+    if (!/^[0-9]$/.test(key)) {
       event.preventDefault();
     }
-    return;
-  }
-
-  // Permitir solo números
-  if (!/^[0-9]$/.test(key)) {
-    event.preventDefault();
-  }
-};
+  };
 
   return (
     <Formik<ICommandPrincipal>
@@ -280,8 +284,17 @@ const onlyNumber = (event: any) => {
                         discountType: "none",
                         discount: 0,
                       });
+                      if (setStateDiscount) {
+                        setStateDiscount({ type: "none", value: 0 });
+                      }
                     } else {
                       setFieldValue("discountType", newType);
+                      if (setStateDiscount) {
+                        setStateDiscount({
+                          type: newType,
+                          value: values.discount || 0,
+                        });
+                      }
                     }
                   }}
                   error={Boolean(errors.discountType)}
@@ -304,15 +317,15 @@ const onlyNumber = (event: any) => {
                 </TextField>
               </Grid>
 
-            <Grid item xs={12} sm={8}>
-              <TextField
-                id="discount"
-                label="Descuento (valor)"
-                name="discount"
-                type="text" 
-                InputLabelProps={{ shrink: true }}
-              value={values.discount}
-            onChange={(e) => {
+              <Grid item xs={12} sm={8}>
+                <TextField
+                  id="discount"
+                  label="Descuento (valor)"
+                  name="discount"
+                  type="text"
+                  InputLabelProps={{ shrink: true }}
+                  value={values.discount}
+                  onChange={(e) => {
                     let val = e.target.value;
 
                     // Mantener solo números y separadores
@@ -324,23 +337,30 @@ const onlyNumber = (event: any) => {
                     const numericValue = val === "" ? "" : val;
 
                     setFieldValue("discount", numericValue);
-                }}
-                onKeyDown={onlyNumber} 
-                onFocus={(event) => event.target.select()}
-                error={Boolean(errors.discount)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PriceChangeIcon color="secondary" />
-                    </InputAdornment>
-                  ),
-                  readOnly: !canManageCommand,
-                }}
-                disabled={isSubmitting || values.discountType === "none"}
-                helperText={errors.discount}
-                fullWidth={true}
-              />
-            </Grid>
+
+                    if (setStateDiscount) {
+                      setStateDiscount({
+                        type: values.discountType!,
+                        value: Number(numericValue) || 0,
+                      });
+                    }
+                  }}
+                  onKeyDown={onlyNumber}
+                  onFocus={(event) => event.target.select()}
+                  error={Boolean(errors.discount)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PriceChangeIcon color="secondary" />
+                      </InputAdornment>
+                    ),
+                    readOnly: !canManageCommand,
+                  }}
+                  disabled={isSubmitting || values.discountType === "none"}
+                  helperText={errors.discount}
+                  fullWidth={true}
+                />
+              </Grid>
 
               <Grid item xs={12} sm={12}>
                 <TextField

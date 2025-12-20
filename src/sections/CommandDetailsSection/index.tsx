@@ -142,6 +142,11 @@ const CommandDetailsSectionContent = ({
   >([]);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const [stateDiscout, setStateDiscount] = useState({
+    type: "none",
+    value: 0,
+  });
+
   const totalOrderPrice = commandDetailsCollection
     ? commandDetailsCollection.reduce((acc, curr) => acc + curr.orderPrice, 0)
     : 0;
@@ -196,8 +201,8 @@ const CommandDetailsSectionContent = ({
       return;
     }
 
-    const discountType = formikRef.current?.values.discountType ?? "none";
-    const discountValue = Number(formikRef.current?.values.discount ?? 0);
+    const discountType = stateDiscout.type ?? "none";
+    const discountValue = Number(stateDiscout.value ?? 0);
     const hasDiscountChange =
       discountType !== initialDiscountType || discountValue !== initialDiscount;
 
@@ -235,7 +240,7 @@ const CommandDetailsSectionContent = ({
     const hasDetailsChange = initialCommandDetailsCollection.some((item) => {
       const commandDetails = commandDetailsCollection.find(
         (commandDetailsCollection) =>
-          commandDetailsCollection.dish.id === item.dish.id
+          commandDetailsCollection.uniqueId === item.uniqueId
       );
 
       if (!commandDetails) {
@@ -275,9 +280,7 @@ const CommandDetailsSectionContent = ({
     initialCommandDetailsCollection,
     initialDiscount,
     initialDiscountType,
-    formikRef.current?.values?.seatCount,
-    formikRef.current?.values?.discount,
-    formikRef.current?.values?.discountType,
+    stateDiscout,
   ]);
 
   // Dectetando cambios en selecteCategory
@@ -356,6 +359,10 @@ const CommandDetailsSectionContent = ({
       setInitialDiscountType(res.discountType ?? "none");
       setChange(false);
       setIsLoadingCommand(false);
+      setStateDiscount({
+        type: res.discountType ?? "none",
+        value: res.discount ?? 0,
+      });
     } catch (err) {
       const error = err as AxiosError;
 
@@ -661,6 +668,7 @@ const CommandDetailsSectionContent = ({
                 customRef={formikRef}
                 commandDetailsCollection={commandDetailsCollection}
                 saveCommand={saveCommand}
+                setStateDiscount={setStateDiscount}
               />
               <Box
                 ref={formRef}
