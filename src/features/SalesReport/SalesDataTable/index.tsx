@@ -118,66 +118,59 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
       field: "actions",
       type: "actions",
       headerName: "Actions",
-      width: 100,
+      width: 120,
       cellClassName: "actions",
       getActions: (fa: GridRowParams<ISalesDataPerDate>) => {
         return [
-          <>
-            <GridActionsCellItem
-              icon={
-                <Box
-                  sx={{
-                    display: "flex",
-                    bgcolor: "primary.main",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white",
-                    padding: "0.5rem 0.7rem",
-                    borderRadius: 1,
-                    zIndex: 999,
-                  }}
-                >
-                  <VisibilityIcon />
-                </Box>
-              }
-              label="Ver Detalles de la Venta"
-              color="primary"
-              onClick={
-                () => {
-                  setOpenModal(true);
-                  setAccumulatedPayment(fa.row.accumulatedPaymentsByDays);
-                }
-              }
-            />
-            <GridActionsCellItem
-              icon={
-                <Box
-                  sx={{
-                    display: "flex",
-                    bgcolor: "secondary.main",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white",
-                    padding: "0.5rem 0.7rem",
-                    borderRadius: 1,
-                    zIndex: 999,
-                    marginLeft: 1,
-                  }}
-                >
-                  <RestaurantIcon />
-                </Box>
-              }
-              label="Ver Platos Vendidos"
-              color="secondary"
-              onClick={
-                () => {
-                  setOpenDishesModal(true);
-                  setSoldDishes(fa.row.soldDishes || []);
-                  setSoldExtras(fa.row.soldExtras || []);
-                }
-              }
-            />
-          </>,
+          <GridActionsCellItem
+            key="view-details"
+            icon={
+              <Box
+                sx={{
+                  display: "flex",
+                  bgcolor: "primary.main",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "white",
+                  padding: "0.5rem 0.7rem",
+                  borderRadius: 1,
+                }}
+              >
+                <VisibilityIcon />
+              </Box>
+            }
+            label="Ver Detalles de la Venta"
+            color="primary"
+            onClick={() => {
+              setOpenModal(true);
+              setAccumulatedPayment(fa.row.accumulatedPaymentsByDays);
+            }}
+          />,
+          <GridActionsCellItem
+            key="view-dishes"
+            icon={
+              <Box
+                sx={{
+                  display: "flex",
+                  bgcolor: "secondary.main",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "white",
+                  padding: "0.5rem 0.7rem",
+                  borderRadius: 1,
+                }}
+              >
+                <RestaurantIcon />
+              </Box>
+            }
+            label="Ver Platos Vendidos"
+            color="secondary"
+            onClick={() => {
+              setOpenDishesModal(true);
+              setSoldDishes(fa.row.soldDishes || []);
+              setSoldExtras(fa.row.soldExtras || []);
+            }}
+          />,
         ];
       },
     },
@@ -517,7 +510,7 @@ const DialogDishesModal = (
         <Box sx={{ width: "100px" }} /> {/* Spacer */}
         <Box>Detalle de Platos y Extras Vendidos</Box>
         <Button
-          variant="outlined"
+          variant="contained"
           color="success"
           onClick={handleExportExcel}
           disabled={normalizedPlatos.length === 0 && normalizedExtras.length === 0}
