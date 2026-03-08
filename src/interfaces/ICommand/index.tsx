@@ -39,6 +39,7 @@ interface ICommandForTable {
   commandState: ICommandStateGet;
   employee: IEmployeeGet;
   quantityOfDish: number;
+  customerAnonymous?: string | null;
 }
 
 interface ICommandDetailsPrincipal {

@@ -133,13 +133,27 @@ const TableCard: React.FC<TableCardProps> = ({
           alignItems: "center",
         }}
       >
-        {table?.state == "Ocupado" || !table ? (
-          <AccessTimeFilledOutlinedIcon fontSize="medium" />
-        ) : (
-          <CheckCircleIcon fontSize="medium" />
-        )}
+        {table &&
+          (table.state === "Ocupado" ? (
+            <AccessTimeFilledOutlinedIcon fontSize="medium" />
+          ) : (
+            <CheckCircleIcon fontSize="medium" />
+          ))}
 
-        <Typography>{table?.state || "Para llevar"}</Typography>
+        {!table ? (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Typography sx={{ textTransform: "uppercase", fontWeight: "bold", fontSize: "1.2rem", textAlign: "center" }}>
+              PARA LLEVAR:
+            </Typography>
+            {command?.customerAnonymous && (
+              <Typography sx={{ textTransform: "uppercase", fontWeight: "bold", fontSize: "1.2rem", textAlign: "center" }}>
+                {command.customerAnonymous}
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          <Typography>{table.state}</Typography>
+        )}
       </Box>
     </CardContent>
   );
