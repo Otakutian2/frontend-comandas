@@ -110,6 +110,16 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
       flex: 1,
     },
     {
+      field: "quantityOfExtrasSold",
+      headerName: "Cantidad de Extras Vendidos",
+      type: "number",
+      headerAlign: "left",
+      align: "left",
+      minWidth: 230,
+      sortable: false,
+      flex: 1,
+    },
+    {
       field: "bestSellingDish",
       headerName: "Plato más Vendido del Día",
       minWidth: 200,

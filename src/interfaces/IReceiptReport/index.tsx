@@ -51,6 +51,7 @@ interface ISalesDataPerDate {
   accumulatedSales: number;
   numberOfGeneratedReceipts: number;
   quantityOfDishSales: number;
+  quantityOfExtrasSold: number;
   bestSellingDish: string;
   accumulatedPaymentsByDays: IAccumulatedPayment[];
   soldDishes: IDishSoldData[];
