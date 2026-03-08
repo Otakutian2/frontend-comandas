@@ -14,8 +14,36 @@ interface IReceiptReportGet {
 }
 
 export interface IAccumulatedPayment {
+  paymentMethodId: number;
   paymentMethodName: string;
   totalAmount: number;
+}
+
+export interface IDishPaymentMethodTotal {
+  paymentMethodId: number;
+  paymentMethodName: string;
+  amount: number;
+}
+
+export interface IDishSoldData {
+  dishId: string;
+  dishCategoryId: string;
+  dishName: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+  
+  paymentMethodTotals: IDishPaymentMethodTotal[];
+}
+
+export interface IExtraSoldData {
+  extraId: string;
+  extraCategoryId: string;
+  extraName: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+  paymentMethodTotals: IDishPaymentMethodTotal[];
 }
 
 interface ISalesDataPerDate {
@@ -25,6 +53,8 @@ interface ISalesDataPerDate {
   quantityOfDishSales: number;
   bestSellingDish: string;
   accumulatedPaymentsByDays: IAccumulatedPayment[];
+  soldDishes: IDishSoldData[];
+  soldExtras: IExtraSoldData[];
 }
 
 export type { IReceiptReportGet, ISalesDataPerDate };

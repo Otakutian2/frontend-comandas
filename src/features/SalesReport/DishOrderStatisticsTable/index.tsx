@@ -7,6 +7,7 @@ import {
 import DataTable from "@/components/DataTable";
 import { IDishOrderStatistics } from "@/interfaces/IDish";
 import ImageView from "@/components/ImageView";
+import { ramdonKey } from "@/utils";
 
 interface IDishOrderStatisticsTableProps {
   data: IDishOrderStatistics[];
@@ -79,7 +80,7 @@ const DishOrderStatisticsTable = ({ data }: IDishOrderStatisticsTableProps) => {
         rowHeight={130}
         columns={columns}
         rows={data}
-        getRowId={(row) => row.dishId}
+        getRowId={(row) => ramdonKey(row.dishId)}
       />
     </>
   );

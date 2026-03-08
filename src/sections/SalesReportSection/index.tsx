@@ -16,6 +16,7 @@ import { Formik } from "formik";
 import DishOrderStatisticsGraphics from "@/features/SalesReport/DishOrderStatisticsGraphics";
 import SaleDataGraphics from "@/features/SalesReport/SalesDataGraphics";
 import Title from "@/components/Title";
+import { IPaymentMethodGet } from "@/interfaces";
 
 interface IOptionsReport {
   id: number;
@@ -44,9 +45,13 @@ const SalesReportSection = () => {
     () => fetchAll<ISalesDataPerDate>("api/receipt/sales-data-per-date")
   );
 
+  const { data: paymentMethodData, isLoading: isLoadingPaymentMethodData } = useSWR("api/PaymentMethod", () =>
+    fetchAll<IPaymentMethodGet>("api/PaymentMethod")
+  );
+
   const [typeReport, setTypeReport] = useState<number>(options[0].id);
 
-  if (isLoadingDishes || isLoadingSalesData) return <LoaderComponent />;
+  if (isLoadingDishes || isLoadingSalesData || isLoadingPaymentMethodData) return <LoaderComponent />;
 
   return (
     <>
@@ -99,7 +104,7 @@ const SalesReportSection = () => {
             <DishOrderStatisticsTable data={dishes!} />
           </>
         ) : (
-          <SalesDataTable data={salesData!} />
+          <SalesDataTable data={salesData!} paymentMethodData={paymentMethodData!} />
         )}
       </ContentBox>
 
@@ -108,7 +113,7 @@ const SalesReportSection = () => {
       )}
 
       {typeReport === 2 && salesData!.length > 0 && (
-        <SaleDataGraphics data={salesData!.slice(0, 5)} />
+        <SaleDataGraphics data={salesData!.slice(0, 5)}  />
       )}
     </>
   );
