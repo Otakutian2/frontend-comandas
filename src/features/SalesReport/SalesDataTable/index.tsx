@@ -48,6 +48,7 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
   const [openDishesModal, setOpenDishesModal] = useState(false);
   const [soldDishes, setSoldDishes] = useState<IDishSoldData[]>([]);
   const [soldExtras, setSoldExtras] = useState<IExtraSoldData[]>([]);
+  const [selectedRowDate, setSelectedRowDate] = useState<Date | null>(null);
 
   const closeModal = () => {
     setOpenModal(false);
@@ -58,6 +59,7 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
     setOpenDishesModal(false);
     setSoldDishes([]);
     setSoldExtras([]);
+    setSelectedRowDate(null);
   };
   
   const columns: GridColDef[] = [
@@ -118,34 +120,34 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
       field: "actions",
       type: "actions",
       headerName: "Actions",
-      width: 120,
+      width: 100,
       cellClassName: "actions",
       getActions: (fa: GridRowParams<ISalesDataPerDate>) => {
         return [
-          <GridActionsCellItem
-            key="view-details"
-            icon={
-              <Box
-                sx={{
-                  display: "flex",
-                  bgcolor: "primary.main",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  color: "white",
-                  padding: "0.5rem 0.7rem",
-                  borderRadius: 1,
-                }}
-              >
-                <VisibilityIcon />
-              </Box>
-            }
-            label="Ver Detalles de la Venta"
-            color="primary"
-            onClick={() => {
-              setOpenModal(true);
-              setAccumulatedPayment(fa.row.accumulatedPaymentsByDays);
-            }}
-          />,
+          // <GridActionsCellItem
+          //   key="view-details"
+          //   icon={
+          //     <Box
+          //       sx={{
+          //         display: "flex",
+          //         bgcolor: "primary.main",
+          //         justifyContent: "center",
+          //         alignItems: "center",
+          //         color: "white",
+          //         padding: "0.5rem 0.7rem",
+          //         borderRadius: 1,
+          //       }}
+          //     >
+          //       <VisibilityIcon />
+          //     </Box>
+          //   }
+          //   label="Ver Detalles de la Venta"
+          //   color="primary"
+          //   onClick={() => {
+          //     setOpenModal(true);
+          //     setAccumulatedPayment(fa.row.accumulatedPaymentsByDays);
+          //   }}
+          // />,
           <GridActionsCellItem
             key="view-dishes"
             icon={
@@ -169,6 +171,7 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
               setOpenDishesModal(true);
               setSoldDishes(fa.row.soldDishes || []);
               setSoldExtras(fa.row.soldExtras || []);
+              setSelectedRowDate(fa.row.createdAt);
             }}
           />,
         ];
@@ -192,7 +195,7 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
        soldDishes, 
        soldExtras, 
        paymentMethodData, 
-       data.length > 0 ? data[0].createdAt : null
+       selectedRowDate
      )}
     </>
   );
@@ -308,8 +311,7 @@ const DialogDishesModal = (
     totalAmount: e.totalAmount,
     paymentMethodTotals: e.paymentMethodTotals,
   })) || [];
-  console.log(normalizedPlatos);
-  console.log(normalizedExtras);
+
 
   const getPaymentMethodAmountById = (
     paymentMethodTotals: IDishPaymentMethodTotal[],
@@ -343,7 +345,7 @@ const DialogDishesModal = (
               <TableCell align="center" sx={{ fontWeight: "bold" }}>Cant</TableCell>
               <TableCell align="right" sx={{ fontWeight: "bold" }}>Precio</TableCell>
               {paymentMethodData.map((pm) => (
-                <TableCell key={ramdonKey("pm")} align="right" sx={{ fontWeight: "bold" }}>
+                <TableCell key={ramdonKey("pm-header")} align="right" sx={{ fontWeight: "bold" }}>
                   {pm.name}
                 </TableCell>
               ))}
@@ -362,13 +364,33 @@ const DialogDishesModal = (
                 <TableCell align="center">{item.quantity}</TableCell>
                 <TableCell align="right">{item.unitPrice.toFixed(2)}</TableCell>
                 {paymentMethodData.map((pm) => (
-                  <TableCell key={ramdonKey("pm")} align="right">
+                  <TableCell key={ramdonKey("pm-cell")} align="right">
                     {getPaymentMethodAmountById(item.paymentMethodTotals, pm.id).toFixed(2)}
                   </TableCell>
                 ))}
                 <TableCell align="right">{item.totalAmount.toFixed(2)}</TableCell>
               </TableRow>
             ))}
+            
+            {/* Totals Row */}
+            <TableRow sx={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}>
+              <TableCell colSpan={2} />
+              <TableCell align="right" sx={{ fontWeight: "bold" }}>TOTAL:</TableCell>
+              {paymentMethodData.map((pm) => {
+                const totalPorPm = items.reduce(
+                  (acc, item) => acc + getPaymentMethodAmountById(item.paymentMethodTotals, pm.id),
+                  0
+                );
+                return (
+                  <TableCell key={ramdonKey("pm-total")} align="right" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                    {totalPorPm.toFixed(2)}
+                  </TableCell>
+                );
+              })}
+              <TableCell align="right" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                {items.reduce((acc, item) => acc + item.totalAmount, 0).toFixed(2)}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
@@ -462,6 +484,29 @@ const DialogDishesModal = (
         wsData.push(row);
         currentRowIndex++;
       });
+
+      // 4. Totals Row for the section
+      const totalsRow = [];
+      // Empty spaces for Name, Cant, Precio
+      totalsRow.push({ v: "TOTAL", t: "s", s: getHeaderStyle("E7E6E6") });
+      totalsRow.push({ v: "", t: "s" });
+      totalsRow.push({ v: "", t: "s" });
+
+      paymentMethodData.forEach((pm) => {
+        const totalPorPm = items.reduce(
+          (acc, item) => acc + getPaymentMethodAmountById(item.paymentMethodTotals, pm.id),
+          0
+        );
+        totalsRow.push({ v: Number(totalPorPm), t: "n", s: { ...getRowStyle("right"), font: { bold: true, color: { rgb: "000000" } } } });
+      });
+
+      const grandTotal = items.reduce((acc, item) => acc + item.totalAmount, 0);
+      totalsRow.push({ v: Number(grandTotal), t: "n", s: { ...getRowStyle("right"), font: { bold: true, color: { rgb: "000000" } } } });
+
+      wsData.push(totalsRow);
+      // Merge cells for TOTAL label to span across Nombre, Cant, Precio
+      merges.push({ s: { r: currentRowIndex, c: 0 }, e: { r: currentRowIndex, c: 2 } });
+      currentRowIndex++;
     };
 
     if (normalizedPlatos.length > 0) {
@@ -476,6 +521,48 @@ const DialogDishesModal = (
         currentRowIndex += 2;
       }
       appendSection("EXTRAS", normalizedExtras);
+    }
+
+    // 5. Grand Total (Platos + Extras)
+    if (normalizedPlatos.length > 0 || normalizedExtras.length > 0) {
+      // Leave 2 empty rows before grand total
+      wsData.push(Array(headers.length).fill(""));
+      wsData.push(Array(headers.length).fill(""));
+      currentRowIndex += 2;
+
+      const grandTotalRow = [];
+      grandTotalRow.push({ v: "TOTAL GENERAL", t: "s", s: getHeaderStyle("E7E6E6") }); // Grey background
+      grandTotalRow.push({ v: "", t: "s" });
+      grandTotalRow.push({ v: "", t: "s" });
+      
+      const textBlackStyle = { font: { bold: true, color: { rgb: "000000" } } };
+
+      paymentMethodData.forEach((pm) => {
+        const totalPlatos = normalizedPlatos.reduce((acc, item) => acc + getPaymentMethodAmountById(item.paymentMethodTotals, pm.id), 0);
+        const totalExtras = normalizedExtras.reduce((acc, item) => acc + getPaymentMethodAmountById(item.paymentMethodTotals, pm.id), 0);
+        const totalPmGral = totalPlatos + totalExtras;
+        
+        grandTotalRow.push({ 
+          v: Number(totalPmGral), 
+          t: "n", 
+          s: { ...getRowStyle("right"), font: textBlackStyle.font } 
+        });
+      });
+
+      const totalFinalGral = 
+        normalizedPlatos.reduce((acc, item) => acc + item.totalAmount, 0) +
+        normalizedExtras.reduce((acc, item) => acc + item.totalAmount, 0);
+
+      grandTotalRow.push({ 
+        v: Number(totalFinalGral), 
+        t: "n", 
+        s: { ...getRowStyle("right"), font: textBlackStyle.font } 
+      });
+
+      wsData.push(grandTotalRow);
+      // Merge cells for TOTAL GENERAL label to span across Nombre, Cant, Precio
+      merges.push({ s: { r: currentRowIndex, c: 0 }, e: { r: currentRowIndex, c: 2 } });
+      currentRowIndex++;
     }
 
     if (wsData.length === 0) {
@@ -542,6 +629,41 @@ const DialogDishesModal = (
             <Typography variant="body1" align="center" color="text.secondary" sx={{ py: 4 }}>
               No hay platos ni extras vendidos registrados
             </Typography>
+          )}
+
+          {(normalizedPlatos.length > 0 || normalizedExtras.length > 0) && (
+            <Box sx={{ mt: 3, mb: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <TableContainer component={Paper} sx={{ width: 'auto' }} elevation={0} variant="outlined">
+                <Table size="small" aria-label="total de totales">
+                  <TableBody>
+                    <TableRow sx={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1rem', borderBottom: 'none', color: 'text.primary', pr: 4 }}>
+                        TOTAL GENERAL:
+                      </TableCell>
+                      {paymentMethodData.map((pm) => {
+                        const totalPlatos = normalizedPlatos.reduce((acc, item) => acc + getPaymentMethodAmountById(item.paymentMethodTotals, pm.id), 0);
+                        const totalExtras = normalizedExtras.reduce((acc, item) => acc + getPaymentMethodAmountById(item.paymentMethodTotals, pm.id), 0);
+                        const totalMethod = totalPlatos + totalExtras;
+                        
+                        return (
+                          <TableCell key={ramdonKey("total-gral-pm")} align="right" sx={{ fontWeight: 'bold', minWidth: '90px', color: 'primary.main', borderBottom: 'none' }}>
+                            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", fontSize: "0.75rem", lineHeight: 1 }}>{pm.name}</Typography>
+                            S/. {totalMethod.toFixed(2)}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '1.2rem', minWidth: '120px', color: 'primary.main', borderLeft: '1px solid rgba(224, 224, 224, 1)', borderBottom: 'none', backgroundColor: "rgba(25, 118, 210, 0.04)" }}>
+                        <Typography variant="caption" sx={{ color: "primary.main", display: "block", fontSize: "0.8rem", fontWeight: "bold", lineHeight: 1, mb: 0.5 }}>Total Final</Typography>
+                        S/. {(
+                          normalizedPlatos.reduce((acc, item) => acc + item.totalAmount, 0) +
+                          normalizedExtras.reduce((acc, item) => acc + item.totalAmount, 0)
+                        ).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
           )}
         </Box>
       </DialogContent>

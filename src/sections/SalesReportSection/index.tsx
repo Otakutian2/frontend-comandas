@@ -108,11 +108,11 @@ const SalesReportSection = () => {
         )}
       </ContentBox>
 
-      {typeReport === 1 && dishes!.length > 0 && (
+      {typeReport === 1 && (dishes && dishes?.length > 0) && (
         <DishOrderStatisticsGraphics data={dishes!} />
       )}
 
-      {typeReport === 2 && salesData!.length > 0 && (
+      {typeReport === 2 && (salesData && salesData?.length > 0) && (
         <SaleDataGraphics data={salesData!.slice(0, 5)}  />
       )}
     </>
