@@ -49,6 +49,7 @@ export interface IExtraSoldData {
 interface ISalesDataPerDate {
   createdAt: Date;
   accumulatedSales: number;
+  totalDiscount: number;
   numberOfGeneratedReceipts: number;
   quantityOfDishSales: number;
   quantityOfExtrasSold: number;

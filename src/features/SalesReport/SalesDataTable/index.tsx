@@ -49,6 +49,7 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
   const [soldDishes, setSoldDishes] = useState<IDishSoldData[]>([]);
   const [soldExtras, setSoldExtras] = useState<IExtraSoldData[]>([]);
   const [selectedRowDate, setSelectedRowDate] = useState<Date | null>(null);
+  const [selectedDiscount, setSelectedDiscount] = useState<number>(0);
 
   const closeModal = () => {
     setOpenModal(false);
@@ -60,6 +61,7 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
     setSoldDishes([]);
     setSoldExtras([]);
     setSelectedRowDate(null);
+    setSelectedDiscount(0);
   };
   
   const columns: GridColDef[] = [
@@ -182,6 +184,7 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
               setSoldDishes(fa.row.soldDishes || []);
               setSoldExtras(fa.row.soldExtras || []);
               setSelectedRowDate(fa.row.createdAt);
+              setSelectedDiscount(fa.row.totalDiscount || 0);
             }}
           />,
         ];
@@ -205,7 +208,8 @@ const SalesDataTable = ({ data, paymentMethodData }: ISalesDataTableProps) => {
        soldDishes, 
        soldExtras, 
        paymentMethodData, 
-       selectedRowDate
+       selectedRowDate,
+       selectedDiscount
      )}
     </>
   );
@@ -302,7 +306,8 @@ const DialogDishesModal = (
   soldDishes: IDishSoldData[],
   soldExtras: IExtraSoldData[],
   paymentMethodData: IPaymentMethodGet[],
-  rowDate: Date | null
+  rowDate: Date | null,
+  totalDiscount: number
 ) => {
   const normalizedPlatos = soldDishes?.map((d) => ({
     id: d.dishId,
@@ -573,6 +578,28 @@ const DialogDishesModal = (
       // Merge cells for TOTAL GENERAL label to span across Nombre, Cant, Precio
       merges.push({ s: { r: currentRowIndex, c: 0 }, e: { r: currentRowIndex, c: 2 } });
       currentRowIndex++;
+
+      // Total Descuento
+      const discountRow = [];
+      discountRow.push({ v: "TOTAL DESCUENTO", t: "s", s: getHeaderStyle("E7E6E6") });
+      discountRow.push({ v: "", t: "s" });
+      discountRow.push({ v: "", t: "s" });
+      paymentMethodData.forEach(() => discountRow.push({ v: "", t: "s" }));
+      discountRow.push({ v: Number(totalDiscount), t: "n", s: { ...getRowStyle("right"), font: { bold: true, color: { rgb: "C00000" } } } });
+      wsData.push(discountRow);
+      merges.push({ s: { r: currentRowIndex, c: 0 }, e: { r: currentRowIndex, c: 2 + paymentMethodData.length } });
+      currentRowIndex++;
+
+      // Total con Descuento
+      const finalRow = [];
+      finalRow.push({ v: "TOTAL CON DESCUENTO", t: "s", s: getHeaderStyle("D9D9D9") });
+      finalRow.push({ v: "", t: "s" });
+      finalRow.push({ v: "", t: "s" });
+      paymentMethodData.forEach(() => finalRow.push({ v: "", t: "s" }));
+      finalRow.push({ v: Number(totalFinalGral - totalDiscount), t: "n", s: { ...getRowStyle("right"), font: { bold: true, color: { rgb: "000000" } } } });
+      wsData.push(finalRow);
+      merges.push({ s: { r: currentRowIndex, c: 0 }, e: { r: currentRowIndex, c: 2 + paymentMethodData.length } });
+      currentRowIndex++;
     }
 
     if (wsData.length === 0) {
@@ -667,6 +694,17 @@ const DialogDishesModal = (
                         S/. {(
                           normalizedPlatos.reduce((acc, item) => acc + item.totalAmount, 0) +
                           normalizedExtras.reduce((acc, item) => acc + item.totalAmount, 0)
+                        ).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '1.2rem', minWidth: '120px', color: 'error.main', borderLeft: '1px solid rgba(224, 224, 224, 1)', borderBottom: 'none', backgroundColor: "rgba(211, 47, 47, 0.04)" }}>
+                        <Typography variant="caption" sx={{ color: "error.main", display: "block", fontSize: "0.8rem", fontWeight: "bold", lineHeight: 1, mb: 0.5 }}>Total Descuento</Typography>
+                        S/. {totalDiscount.toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '1.2rem', minWidth: '130px', color: 'success.main', borderLeft: '1px solid rgba(224, 224, 224, 1)', borderBottom: 'none', backgroundColor: "rgba(46, 125, 50, 0.04)" }}>
+                        <Typography variant="caption" sx={{ color: "success.main", display: "block", fontSize: "0.8rem", fontWeight: "bold", lineHeight: 1, mb: 0.5 }}>Total con Descuento</Typography>
+                        S/. {(
+                          normalizedPlatos.reduce((acc, item) => acc + item.totalAmount, 0) +
+                          normalizedExtras.reduce((acc, item) => acc + item.totalAmount, 0) - totalDiscount
                         ).toFixed(2)}
                       </TableCell>
                     </TableRow>
